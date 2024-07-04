@@ -13,7 +13,4 @@ numpy==1.23.5
 meilisearch==0.31.0
 requests_toolbelt==0.10.1
 google-cloud-storage==1.33.0
-fastapi-cache2==0.2.1
-redis==4.6.0
 pytz==2023.3.post1
-meilisearch
