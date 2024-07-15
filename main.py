@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from app.gql import gql_fetch_latest_stories
+from app.gql import gql_fetch_latest_stories, gql_fetch_media_statistics
 import app.cronjob as cronjob
 import app.config as config
 
@@ -70,4 +70,12 @@ async def data_most_read_members():
     most_read_member_days=most_read_member_days, 
     most_read_member_num=most_read_member_num
   )
+  return "ok"
+
+@app.post('/cronjob/media_statistics')
+async def data_media_statistics():
+  gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+  media_statistics_days = int(os.environ.get('MEDIA_STATISTICS_DAYS', config.DEFAULT_MEDIA_STATISTICS_DAYS))
+  all_stories = gql_fetch_media_statistics(gql_endpoint, media_statistics_days)
+  cronjob.media_statistics(all_stories)
   return "ok"

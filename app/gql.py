@@ -26,6 +26,17 @@ def gql_fetch_latest_stories(gql_endpoint, days: int):
     all_stories = gql_query(gql_endpoint, gql_mesh_latest_stories.format(START_PUBLISHED_DATE=formatted_start_time))
     all_stories = all_stories['stories']
     return all_stories
+  
+def gql_fetch_media_statistics(gql_endpoint, days: int):
+    ### calculate start time
+    current_time = datetime.now(pytz.timezone('Asia/Taipei'))
+    start_time = current_time - timedelta(days=days)
+    formatted_start_time = start_time.isoformat()
+    
+    ### fetch stories
+    all_stories = gql_query(gql_endpoint, gql_mesh_media_statistics.format(START_PUBLISHED_DATE=formatted_start_time))
+    all_stories = all_stories['stories']
+    return all_stories
 
 ### GQL Query: Please follow the convention of gql_[product]_[list]
 gql_mesh_publishers = '''
@@ -212,6 +223,37 @@ query Stories{{
     commentCount
     paywall
     full_screen_ad
+  }}
+}}
+'''
+
+gql_mesh_media_statistics = '''
+query Stories{{
+  stories(
+    where: {{
+      published_date: {{
+        gte: "{START_PUBLISHED_DATE}"
+      }},
+      category: {{
+        id: {{
+          gt: 0
+        }}
+      }}
+    }},
+  ){{
+    source{{
+      id
+    }}
+    readsCount: pickCount(
+      where: {{
+        kind: {{
+          equals: "read"
+        }},
+        is_active: {{
+          equals: true
+        }}
+      }}
+    )
   }}
 }}
 '''

@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories
+from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers
 import app.config as config
 
 def most_followers(most_follower_num: int):
@@ -186,3 +186,28 @@ def most_sponsor_publisher(most_sponsor_publisher_num: int, most_pickcount_publi
   upload_blob(filename)
   
   return True
+
+def media_statistics(all_stories: list):
+  ### get all publishers and set default value
+  statistics = {}
+  gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+  publishers = gql_query(gql_endpoint, gql_mesh_publishers)
+  publishers = publishers['publishers']
+  for publisher in publishers:
+    id = publisher['id']
+    title = publisher['title']
+    statistics[id] = {
+      "title": title,
+      "readsCount": 0
+    }
+  
+  ### categorize stories
+  for story in all_stories:
+    media_id = story['source']['id']
+    readsCount = story['readsCount']
+    statistics[media_id]['readsCount'] += readsCount
+  
+  ### save and upload json
+  filename = os.path.join('data', f'media_statistics.json')
+  save_file(filename, statistics)
+  upload_blob(filename)
