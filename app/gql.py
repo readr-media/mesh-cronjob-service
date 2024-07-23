@@ -63,7 +63,7 @@ query Publishers{
     logo
     full_content
     paywall
-    sponsorCount: followerCount
+    sponsorCount: sponsoredCount
   }
 }
 '''
