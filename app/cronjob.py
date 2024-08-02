@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers
+from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open
 import app.config as config
 
 def most_followers(most_follower_num: int):
@@ -130,7 +130,20 @@ def most_read_story(all_stories: list):
       filename = os.path.join('data', f'most_read_stories_{category_slug}.json')
       save_file(filename, story_list)
       upload_blob(filename)
-      
+
+def open_publishers():
+  gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+  all_publishers = gql_query(gql_endpoint, gql_mesh_publishers_open)
+  all_publishers = all_publishers['publishers']
+  publishers = {
+    publisher['customId']: publisher for publisher in all_publishers
+  }
+  ### save and upload json
+  filename = os.path.join('data', f'open_publishers.json')
+  save_file(filename, publishers)
+  upload_blob(filename)
+  return True
+
 def most_sponsor_publisher(most_sponsor_publisher_num: int, most_pickcount_publisher_num: int, most_sponsor_story_days: int):
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
   current_time = datetime.now(pytz.timezone('Asia/Taipei'))

@@ -79,3 +79,8 @@ async def data_media_statistics():
   all_stories = gql_fetch_media_statistics(gql_endpoint, media_statistics_days)
   cronjob.media_statistics(all_stories)
   return "ok"
+
+@app.post('/cronjob/open_publishers')
+async def data_open_publishers():
+  cronjob.open_publishers()
+  return "ok"

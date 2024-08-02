@@ -53,6 +53,20 @@ query Publishers{
 }
 '''
 
+# Open information for publishers, which is used by frontend
+gql_mesh_publishers_open = '''
+query Publishers{
+  publishers {
+    id
+    customId
+    title
+    logo
+    followerCount
+    description
+  }
+}
+'''
+
 ### TODO: sponsorCount should be modified to real data after connecting cashflow
 gql_mesh_sponsor_publishers = '''
 query Publishers{
