@@ -227,12 +227,26 @@ def media_statistics(all_stories: list):
   
 def recent_readr_stories(take: int):
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+  
   # TODO: Replace the READR_ID
   stories = gql_query(gql_endpoint, gql_recent_readr_stories.format(READR_ID='4', TAKE=take))
   stories = stories['stories']
-  # TODO: Filter out the publisher_date
+  
+  # Filter out the published_date
+  current_time = datetime.now(pytz.timezone('Asia/Taipei'))
+  start_time = current_time - timedelta(days=config.DEFAULT_RECENT_READR_DAYS)
+  formatted_start_time = start_time.timestamp()
+  filtered_stories = []
+  for story in stories:
+    published_date = story.get('published_date', None) # Example: "2024-08-30T03:00:00.000Z"
+    if published_date==None:
+      continue
+    published_date_iso = datetime.strptime(published_date, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
+    if published_date_iso>formatted_start_time:
+      filtered_stories.append(story)
+  
   ### save and upload json
   filename = os.path.join('data', f'recent_readr_stories.json')
-  save_file(filename, stories)
+  save_file(filename, filtered_stories)
   upload_blob(filename)
   
