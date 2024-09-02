@@ -80,6 +80,11 @@ async def data_media_statistics():
   cronjob.media_statistics(all_stories)
   return "ok"
 
+@app.post('/cronjob/weekly_readr_posts')
+async def data_weekly_readr_post():
+  cronjob.recent_readr_stories(take=3)
+  return "ok"
+
 @app.post('/cronjob/open_publishers')
 async def data_open_publishers():
   cronjob.open_publishers()

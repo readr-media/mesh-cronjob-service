@@ -333,3 +333,23 @@ query Stories($where: StoryWhereInput!){
   }
 }
 '''
+
+gql_recent_readr_stories = '''
+query Story{{
+  stories(where: {{source: {{id: {{equals: {READR_ID} }} }} }}, orderBy: {{ id: desc }}, take: {TAKE}){{
+    id
+    title
+    url
+    summary
+    pickCount
+    commentCount
+    og_title
+    og_image
+    og_description
+    full_content
+    paywall
+    isMember
+    published_date
+  }}
+}}
+'''

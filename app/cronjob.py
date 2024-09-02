@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open
+from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_readr_stories
 import app.config as config
 
 def most_followers(most_follower_num: int):
@@ -224,3 +224,15 @@ def media_statistics(all_stories: list):
   filename = os.path.join('data', f'media_statistics.json')
   save_file(filename, statistics)
   upload_blob(filename)
+  
+def recent_readr_stories(take: int):
+  gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+  # TODO: Replace the READR_ID
+  stories = gql_query(gql_endpoint, gql_recent_readr_stories.format(READR_ID='4', TAKE=take))
+  stories = stories['stories']
+  # TODO: Filter out the publisher_date
+  ### save and upload json
+  filename = os.path.join('data', f'recent_readr_stories.json')
+  save_file(filename, stories)
+  upload_blob(filename)
+  
