@@ -352,6 +352,16 @@ query Story{{
     title
     url
     summary
+    picks: pick(
+      where: {{
+        kind: {{
+          equals: "read"
+        }},
+        is_active: {{
+          equals: true
+        }}
+      }}
+    )
     pickCount: pickCount(
       where: {{
         kind: {{
