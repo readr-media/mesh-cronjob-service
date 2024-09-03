@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_stories_pick, gql_readr_id, gql_recent_stories_comment, gql_mesh_publishers_sponsor
+from app.gql import *
 import app.config as config
 import copy
 
@@ -284,3 +284,30 @@ def hotpage_most_sponsor_publisher():
   filename = os.path.join('data', f'hotpage_most_sponsored_publisher.json')
   save_file(filename, most_sponsored_publishers)
   upload_blob(filename)
+  
+def hotpage_most_popular_story():
+    ### get recent picks
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    gql_recent_reads_str = gql_recent_reads.format(TAKE=config.HOTPAGE_POPULAR_STORY_READS_NUM)
+    recent_reads = gql_query(gql_endpoint, gql_recent_reads_str)
+    recent_reads = recent_reads['picks']
+
+    ### calculate each story's counts
+    read_statistics = {}
+    for read in recent_reads:
+        story = read['story']
+        if story==None or isinstance(story, dict)==False:
+            continue
+        id = story.get('id', None)
+        if id==None:
+            continue
+        read_statistics[id] = read_statistics.get(id, 0) + 1
+
+    ### sort and take the most popular one
+    most_reads_story = sorted(read_statistics.items(), key=lambda item: item[1], reverse=True)[0]
+    story = gql_query(gql_endpoint, gql_single_story.format(ID=most_reads_story[0]))
+    
+    ### save and upload json
+    filename = os.path.join('data', f'hotpage_most_popular_story.json')
+    save_file(filename, story)
+    upload_blob(filename)

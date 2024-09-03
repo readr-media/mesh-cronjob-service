@@ -90,6 +90,11 @@ async def data_hotpage_sponsored_publishers():
   cronjob.hotpage_most_sponsor_publisher()
   return "ok"
 
+@app.post('/cronjob/hotpage_most_popular_story')
+async def data_hotpage_most_popular_story():
+  cronjob.hotpage_most_popular_story()
+  return "ok"
+
 @app.post('/cronjob/open_publishers')
 async def data_open_publishers():
   cronjob.open_publishers()

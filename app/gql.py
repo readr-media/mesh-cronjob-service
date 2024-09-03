@@ -425,3 +425,61 @@ query Publishers{
   }
 }
 '''
+
+gql_recent_reads = '''
+query Picks{{
+  picks(where: {{kind: {{equals: "read"}}, is_active: {{ equals: true }} }}, orderBy: {{id: desc}}, take: {TAKE}){{
+    story{{
+      id
+    }}
+  }}
+}}
+'''
+
+gql_single_story = '''
+query Story{{
+    story(where: {{id: {ID} }}){{
+        id
+        title
+        url
+        summary
+        picks: pick(
+          where: {{
+            kind: {{
+              equals: "read"
+            }},
+            is_active: {{
+              equals: true
+            }}
+          }},
+          take: 5
+        ){{
+          createdAt
+          member{{
+            id
+            name
+            avatar
+          }}
+        }}
+        pickCount: pickCount(
+          where: {{
+            kind: {{
+              equals: "read"
+            }},
+            is_active: {{
+              equals: true
+            }}
+          }},
+        )
+        commentCount
+        og_title
+        og_image
+        og_description
+        full_content
+        paywall
+        isMember
+        published_date
+        full_screen_ad
+    }}
+}}
+'''
