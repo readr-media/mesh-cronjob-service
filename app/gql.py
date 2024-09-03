@@ -334,7 +334,7 @@ query Stories($where: StoryWhereInput!){
 }
 '''
 
-gql_recent_stories = '''
+gql_recent_stories_pick = '''
 query Story{{
   stories(where: {{source: {{id: {{equals: {ID} }} }} }}, orderBy: {{ id: desc }}, take: {TAKE}){{
     id
@@ -352,6 +352,31 @@ query Story{{
       }}
     )
     commentCount
+    og_title
+    og_image
+    og_description
+    full_content
+    paywall
+    isMember
+    published_date
+  }}
+}}
+'''
+
+gql_recent_stories_comment = '''
+query Story{{
+  stories(where: {{source: {{id: {{equals: {ID} }} }} }}, orderBy: {{ id: desc }}, take: {TAKE}){{
+    id
+    title
+    url
+    summary
+    commentCount: commentCount(
+      where: {{
+        is_active: {{
+          equals: true
+        }}
+      }}
+    )
     og_title
     og_image
     og_description

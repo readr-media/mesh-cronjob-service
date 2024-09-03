@@ -3,8 +3,9 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_stories, gql_readr_id
+from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_stories_pick, gql_readr_id, gql_recent_stories_comment
 import app.config as config
+import copy
 
 def most_followers(most_follower_num: int):
     data = []
@@ -234,7 +235,7 @@ def recent_readr_stories(take: int):
   publishers = gql_query(gql_endpoint, gql_readr_id)
   publishers = publishers['publishers']
   readr_id = publishers[0]['id']
-  stories = gql_query(gql_endpoint, gql_recent_stories.format(ID=readr_id, TAKE=take))
+  stories = gql_query(gql_endpoint, gql_recent_stories_pick.format(ID=readr_id, TAKE=take))
   stories = stories['stories']
   
   # Filter out the published_date
@@ -254,4 +255,32 @@ def recent_readr_stories(take: int):
   filename = os.path.join('data', f'recent_readr_stories.json')
   save_file(filename, filtered_stories)
   upload_blob(filename)
+
+def hotpage_most_sponsor_publisher():
+  gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+  all_publishers = gql_query(gql_endpoint, gql_mesh_publishers)
+  all_publishers = all_publishers['publishers']
   
+  ### filter readr
+  sponsor_readr = {}
+  for publisher in all_publishers:
+      if publisher.get('title', '').lower()=='readr':
+          sponsor_readr = copy.deepcopy(publisher)
+          all_publishers.remove(publisher)
+          break
+        
+  ### find the top-N sponsored count, append readr in the end
+  most_sponsored_publishers = sorted(all_publishers, key=lambda publisher: publisher.get('sponsoredCount', 0), reverse=True)[:config.HOTPAGE_SPONSOR_PUBLISHER_NUM]
+  most_sponsored_publishers.append(sponsor_readr)
+
+  ### fetch top-N most recent stories for each publisher
+  for idx, publisher in enumerate(most_sponsored_publishers):
+      id = publisher['id']
+      gql_stories = gql_recent_stories_comment.format(ID=id, KIND='read', TAKE=config.HOTPAGE_SPONSOR_PUBLISHER_STORY_NUM)
+      all_stories = gql_query(gql_endpoint, gql_stories)['stories']
+      most_sponsored_publishers[idx]['stories'] = all_stories
+  
+  ### save and upload json
+  filename = os.path.join('data', f'hotpage_most_sponsored_publisher.json')
+  save_file(filename, most_sponsored_publishers)
+  upload_blob(filename)

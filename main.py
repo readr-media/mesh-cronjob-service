@@ -85,6 +85,11 @@ async def data_weekly_readr_post():
   cronjob.recent_readr_stories(take=3)
   return "ok"
 
+@app.post('/cronjob/hotpage_sponsored_publishers')
+async def data_hotpage_sponsored_publishers():
+  cronjob.hotpage_most_sponsor_publisher()
+  return "ok"
+
 @app.post('/cronjob/open_publishers')
 async def data_open_publishers():
   cronjob.open_publishers()
