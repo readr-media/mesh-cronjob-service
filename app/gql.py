@@ -387,6 +387,7 @@ query Story{{
     paywall
     isMember
     published_date
+    full_screen_ad
   }}
 }}
 '''
@@ -412,6 +413,7 @@ query Story{{
     paywall
     isMember
     published_date
+    full_screen_ad
   }}
 }}
 '''
