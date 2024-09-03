@@ -334,9 +334,9 @@ query Stories($where: StoryWhereInput!){
 }
 '''
 
-gql_recent_readr_stories = '''
+gql_recent_stories = '''
 query Story{{
-  stories(where: {{source: {{id: {{equals: {READR_ID} }} }} }}, orderBy: {{ id: desc }}, take: {TAKE}){{
+  stories(where: {{source: {{id: {{equals: {ID} }} }} }}, orderBy: {{ id: desc }}, take: {TAKE}){{
     id
     title
     url

@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_readr_stories, gql_readr_id
+from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_stories, gql_readr_id
 import app.config as config
 
 def most_followers(most_follower_num: int):
@@ -234,7 +234,7 @@ def recent_readr_stories(take: int):
   publishers = gql_query(gql_endpoint, gql_readr_id)
   publishers = publishers['publishers']
   readr_id = publishers[0]['id']
-  stories = gql_query(gql_endpoint, gql_recent_readr_stories.format(READR_ID=readr_id, TAKE=take))
+  stories = gql_query(gql_endpoint, gql_recent_stories.format(ID=readr_id, TAKE=take))
   stories = stories['stories']
   
   # Filter out the published_date
