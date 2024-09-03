@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_stories_pick, gql_readr_id, gql_recent_stories_comment
+from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_stories_pick, gql_readr_id, gql_recent_stories_comment, gql_mesh_publishers_sponsor
 import app.config as config
 import copy
 
@@ -258,7 +258,7 @@ def recent_readr_stories(take: int):
 
 def hotpage_most_sponsor_publisher():
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
-  all_publishers = gql_query(gql_endpoint, gql_mesh_publishers)
+  all_publishers = gql_query(gql_endpoint, gql_mesh_publishers_sponsor)
   all_publishers = all_publishers['publishers']
   
   ### filter readr
