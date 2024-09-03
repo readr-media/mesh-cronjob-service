@@ -353,3 +353,11 @@ query Story{{
   }}
 }}
 '''
+
+gql_readr_id = '''
+query Publishers{
+  publishers(where: {title: {equals: "READr" } }){
+    id
+  }
+}
+'''

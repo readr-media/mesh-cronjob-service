@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 import pytz
 from app.tool import save_file, upload_blob
-from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_readr_stories
+from app.gql import gql_query, gql_mesh_sponsor_publishers, gql_mesh_sponsor_stories, gql_mesh_publishers, gql_mesh_publishers_open, gql_recent_readr_stories, gql_readr_id
 import app.config as config
 
 def most_followers(most_follower_num: int):
@@ -228,8 +228,13 @@ def media_statistics(all_stories: list):
 def recent_readr_stories(take: int):
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
   
-  # TODO: Replace the READR_ID
-  stories = gql_query(gql_endpoint, gql_recent_readr_stories.format(READR_ID='4', TAKE=take))
+  # Get Readr stories
+  # Note: You should avoid passing string comparison when sending stories query
+  # Always use "id" to search stories 
+  publishers = gql_query(gql_endpoint, gql_readr_id)
+  publishers = publishers['publishers']
+  readr_id = publishers[0]['id']
+  stories = gql_query(gql_endpoint, gql_recent_readr_stories.format(READR_ID=readr_id, TAKE=take))
   stories = stories['stories']
   
   # Filter out the published_date
