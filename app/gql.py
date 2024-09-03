@@ -341,7 +341,16 @@ query Story{{
     title
     url
     summary
-    pickCount
+    pickCount: pickCount(
+      where: {
+        kind: {
+          equals: "read"
+        },
+        is_active: {
+          equals: true
+        }
+      }
+    )
     commentCount
     og_title
     og_image
