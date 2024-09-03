@@ -342,14 +342,14 @@ query Story{{
     url
     summary
     pickCount: pickCount(
-      where: {
-        kind: {
+      where: {{
+        kind: {{
           equals: "read"
-        },
-        is_active: {
+        }},
+        is_active: {{
           equals: true
-        }
-      }
+        }}
+      }}
     )
     commentCount
     og_title
