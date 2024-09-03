@@ -361,7 +361,14 @@ query Story{{
           equals: true
         }}
       }}
-    )
+    ){{
+      createdAt
+      member{{
+        id
+        name
+        avatar
+      }}
+    }}
     pickCount: pickCount(
       where: {{
         kind: {{
