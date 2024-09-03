@@ -49,6 +49,7 @@ query Publishers{
     source_type
     full_content
     full_screen_ad
+    sponsoredCount
   }
 }
 '''
