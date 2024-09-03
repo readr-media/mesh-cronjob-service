@@ -55,11 +55,13 @@ query Publishers{
 '''
 
 gql_mesh_publishers_sponsor = '''
+query Publishers{
   publishers{
     id
     title
     sponsoredCount
   }
+}
 '''
 
 # Open information for publishers, which is used by frontend
