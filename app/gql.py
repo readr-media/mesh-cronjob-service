@@ -483,3 +483,55 @@ query Story{{
     }}
 }}
 '''
+
+### This is only used to calcuate likeCount number of each comment
+gql_comment_statistic = '''
+query Comments{{
+  comments(
+    where: {{
+      like: {{some: {{}} }}, 
+      is_active: {{equals: true}}
+    }}, 
+    orderBy: {{id: desc}}, 
+    take: {TAKE}
+  ){{
+    id
+    likeCount: likeCount(where: {{
+      is_active: {{
+        equals: true
+      }}
+    }})
+  }}
+}}
+'''
+
+### reveal the detail information about comment
+# Note: This operation use lots of relation data, don't pass in too many CommentWhereInput elements
+gql_comment_detail = '''
+query Comments($where: CommentWhereInput!){
+  comments(
+    where: $where
+  ){
+    id
+    member{
+      id
+      name
+      avatar
+    }
+    content
+    story{
+      id
+      title
+      source{
+        id
+        title
+      }
+    }
+    likeCount: likeCount(where: {
+      is_active: {
+        equals: true
+      }
+    })
+  }
+}
+'''

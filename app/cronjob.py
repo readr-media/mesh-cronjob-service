@@ -311,3 +311,31 @@ def hotpage_most_popular_story():
     filename = os.path.join('data', f'hotpage_most_popular_story.json')
     save_file(filename, story)
     upload_blob(filename)
+    
+def hotpage_most_like_comments():
+    ### get recent comments
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    comments = gql_query(gql_endpoint, gql_comment_statistic.format(TAKE=config.HOTPAGE_RECENT_COMMENTS_NUM))
+    comments = comments['comments']
+
+    ### sort comment by likeCount
+    sorted_comments = sorted(comments, key=lambda item: item['likeCount'], reverse=True)[:config.HOTPAGE_MOST_LIKE_COMMENTS_NUM]
+    search_ids = [comment['id'] for comment in sorted_comments]
+    search_ids
+
+    ### get the detail of each comment
+    variable = {
+        "where": {
+            "id": {
+                "in": search_ids
+            }
+        }
+    }
+    most_like_comments = gql_query(gql_endpoint, gql_comment_detail, variable)
+    most_like_comments = most_like_comments['comments']
+    sorted_most_like_comments = sorted(most_like_comments, key=lambda comment: comment.get('likeCount', 0), reverse=True)
+    
+    ### save and upload json
+    filename = os.path.join('data', f'hotpage_most_like_comments.json')
+    save_file(filename, sorted_most_like_comments)
+    upload_blob(filename)
