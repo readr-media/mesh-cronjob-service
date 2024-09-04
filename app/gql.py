@@ -526,6 +526,7 @@ query Comments($where: CommentWhereInput!){
         id
         title
       }
+      published_date
     }
     likeCount: likeCount(where: {
       is_active: {

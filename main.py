@@ -95,6 +95,11 @@ async def data_hotpage_most_popular_story():
   cronjob.hotpage_most_popular_story()
   return "ok"
 
+@app.post('/cronjob/hotpage_most_like_comments')
+async def data_hotpage_most_like_comments():
+  cronjob.hotpage_most_like_comments()
+  return "ok"
+
 @app.post('/cronjob/open_publishers')
 async def data_open_publishers():
   cronjob.open_publishers()
