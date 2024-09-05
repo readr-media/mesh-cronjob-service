@@ -489,7 +489,8 @@ gql_comment_statistic = '''
 query Comments{{
   comments(
     where: {{
-      like: {{some: {{}} }}, 
+      like: {{some: {{}} }},
+      story: {{ NOT: {{}} }},
       is_active: {{equals: true}}
     }}, 
     orderBy: {{id: desc}}, 
