@@ -250,6 +250,9 @@ def recent_readr_stories(take: int):
     published_date_iso = datetime.strptime(published_date, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
     if published_date_iso>formatted_start_time:
       filtered_stories.append(story)
+  # If no stories recently, append the first story
+  if len(filtered_stories)==0:
+    filtered_stories.append(stories[0])
   readr_info['stories'] = filtered_stories
   
   ### save and upload json
