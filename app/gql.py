@@ -351,6 +351,7 @@ query Story{{
   stories(where: {{source: {{id: {{equals: {ID} }} }} }}, orderBy: {{ id: desc }}, take: {TAKE}){{
     id
     title
+    customId
     url
     summary
     picks: pick(
@@ -532,6 +533,7 @@ query Comments($where: CommentWhereInput!){
       source{
         id
         title
+        customId
       }
       published_date
     }
