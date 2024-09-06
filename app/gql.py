@@ -351,7 +351,6 @@ query Story{{
   stories(where: {{source: {{id: {{equals: {ID} }} }} }}, orderBy: {{ id: desc }}, take: {TAKE}){{
     id
     title
-    customId
     url
     summary
     picks: pick(
@@ -420,10 +419,12 @@ query Story{{
 }}
 '''
 
-gql_readr_id = '''
+gql_readr_info = '''
 query Publishers{
   publishers(where: {title: {equals: "READr" } }){
     id
+    title
+    customId
   }
 }
 '''

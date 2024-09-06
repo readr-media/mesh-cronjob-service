@@ -232,9 +232,9 @@ def recent_readr_stories(take: int):
   # Get Readr stories
   # Note: You should avoid passing string comparison when sending stories query
   # Always use "id" to search stories 
-  publishers = gql_query(gql_endpoint, gql_readr_id)
-  publishers = publishers['publishers']
-  readr_id = publishers[0]['id']
+  publishers = gql_query(gql_endpoint, gql_readr_info)
+  readr_info = publishers['publishers'][0]
+  readr_id = readr_info['id']
   stories = gql_query(gql_endpoint, gql_recent_stories_pick.format(ID=readr_id, TAKE=take))
   stories = stories['stories']
   
@@ -250,10 +250,11 @@ def recent_readr_stories(take: int):
     published_date_iso = datetime.strptime(published_date, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
     if published_date_iso>formatted_start_time:
       filtered_stories.append(story)
+  readr_info['stories'] = filtered_stories
   
   ### save and upload json
   filename = os.path.join('data', f'recent_readr_stories.json')
-  save_file(filename, filtered_stories)
+  save_file(filename, readr_info)
   upload_blob(filename)
 
 def hotpage_most_sponsor_publisher():
