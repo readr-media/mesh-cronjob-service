@@ -59,6 +59,7 @@ query Publishers{
   publishers{
     id
     title
+    customId
     sponsoredCount
   }
 }
@@ -471,6 +472,11 @@ query Story{{
             }}
           }},
         )
+        source{{
+          id
+          title
+          customId
+        }}
         commentCount
         og_title
         og_image
