@@ -210,10 +210,10 @@ query Stories{{
     source{{
       id
       title
+      customId
     }}
     published_date
     summary
-    content
     og_title
     og_image
     og_description
@@ -331,6 +331,8 @@ query stories($where: StoryWhereInput!){
     full_screen_ad
     source{
       id
+      title
+      customId
     }
   }
 }
