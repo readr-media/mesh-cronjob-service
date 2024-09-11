@@ -38,6 +38,12 @@ def gql_fetch_media_statistics(gql_endpoint, days: int):
     all_stories = all_stories['stories']
     return all_stories
 
+def get_most_like_comment(gql_endpoint, story_id):
+    story = gql_query(gql_endpoint, gql_story_comments.format(STORY_ID=story_id))
+    comments = story['story'].get('comment', [])
+    most_like_comment = sorted(comments, key=lambda comment: comment.get('likeCount', 0), reverse=True)[0]
+    return most_like_comment
+
 ### GQL Query: Please follow the convention of gql_[product]_[list]
 gql_mesh_publishers = '''
 query Publishers{
@@ -238,6 +244,7 @@ query Stories{{
           equals: true
         }}
       }}
+      take: 5
     ){{
       createdAt
       member{{
@@ -547,4 +554,31 @@ query Comments($where: CommentWhereInput!){
     })
   }
 }
+'''
+
+### Get all the comments of a story
+gql_story_comments = '''
+query Story{{
+  story(where: {{id: {STORY_ID} }}){{
+    comment(where: {{
+      is_active: {{
+        equals: true
+      }}
+    }})
+    {{
+      id
+      content
+      member{{
+        id
+        name
+        avatar
+      }}
+      likeCount(where: {{
+        is_active: {{
+          equals: true
+        }}
+      }})
+    }}
+  }}
+}}
 '''

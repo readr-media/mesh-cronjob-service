@@ -112,6 +112,7 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
   
 def most_read_story(all_stories: list):
     ### categorize stories
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
     categorized_stories = {}
     for story in all_stories:
       category_slug = story.get('category', {}).get('slug', None)
@@ -125,6 +126,12 @@ def most_read_story(all_stories: list):
     for category_slug, story_list in categorized_stories.items():
       sorted_story_list = sorted(story_list, key=lambda story: story.get('picksCount', 0), reverse=True)
       sorted_categorized_stories[category_slug] = sorted_story_list[:config.DEFAULT_MOST_READ_STORY_NUM]
+    
+    ### get the comment with most likes for the first story of each category
+    for category_slug, story_list in sorted_categorized_stories.items():
+      story_id = story_list[0]['id']
+      most_like_comment = get_most_like_comment(gql_endpoint, story_id)
+      sorted_categorized_stories[category_slug][0]['comment'] = most_like_comment
     
     ### save and upload json
     for category_slug, story_list in sorted_categorized_stories.items():
