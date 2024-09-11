@@ -41,6 +41,8 @@ def gql_fetch_media_statistics(gql_endpoint, days: int):
 def get_most_like_comment(gql_endpoint, story_id):
     story = gql_query(gql_endpoint, gql_story_comments.format(STORY_ID=story_id))
     comments = story['story'].get('comment', [])
+    if len(comments)==0:
+      return {}
     most_like_comment = sorted(comments, key=lambda comment: comment.get('likeCount', 0), reverse=True)[0]
     return most_like_comment
 
