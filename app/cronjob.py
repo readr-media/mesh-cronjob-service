@@ -31,18 +31,19 @@ def most_followers(most_follower_num: int):
               return False
             members = {row[0]: row[1] for row in rows}
             sql_member = '''
-              SELECT id, name, nickname, avatar FROM "Member"
+              SELECT id, name, "customId", nickname, avatar FROM "Member"
               WHERE id IN %s;
             '''
             cur.execute(sql_member, (tuple(members.keys()),))
             rows = cur.fetchall()
             for row in rows:
-              id, name, nickname, avatar = row
+              id, name, customId, nickname, avatar = row
               data.append({
                   "id": id,
                   "followerCount": members[id],
                   "name": name,
                   "nickname": nickname,
+                  "customId": customId,
                   "avatar": avatar
               })
             data = sorted(data, key=lambda member: member['followerCount'], reverse=True)
