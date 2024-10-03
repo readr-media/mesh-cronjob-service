@@ -351,3 +351,12 @@ def hotpage_most_like_comments():
     filename = os.path.join('data', f'hotpage_most_like_comments.json')
     save_file(filename, sorted_most_like_comments)
     upload_blob(filename)
+    
+def publisher_stories():
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    publisher_stories = gql_fetch_publisher_stories(gql_endpoint, config.PUBLISHER_STORIES_NUM)
+    if publisher_stories and isinstance(publisher_stories, dict):
+      for filename, stories in publisher_stories.items():
+        filename = os.path.join('data', filename)
+        save_file(filename, stories)
+        upload_blob(filename)

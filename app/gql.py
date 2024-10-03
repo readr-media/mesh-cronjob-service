@@ -4,6 +4,7 @@ from gql import gql, Client
 
 from datetime import datetime, timedelta
 import pytz
+import app.config as config
 
 def gql_query(gql_endpoint, gql_string: str, gql_variables: str=None, operation_name: str=None):
   json_data = None
@@ -45,6 +46,37 @@ def get_most_like_comment(gql_endpoint, story_id):
       return {}
     most_like_comment = sorted(comments, key=lambda comment: comment.get('likeCount', 0), reverse=True)[0]
     return most_like_comment
+  
+def gql_fetch_publisher_stories(gql_endpoint, take_num: int=config.PUBLISHER_STORIES_NUM):
+    publisher_stories = {}
+    try:
+        gql_transport = RequestsHTTPTransport(url=gql_endpoint)
+        gql_client = Client(transport=gql_transport,
+                            fetch_schema_from_transport=True)
+        # get publishers information
+        publishers = gql_client.execute(gql(gql_mesh_publishers))
+        publishers = publishers['publishers']
+
+        # get stories for each publishers
+        for publisher in publishers:
+            if publisher['source_type']=='empty':
+                continue
+            id = publisher['id']
+            customId = publisher['customId'] # use this as file name
+            print(f"fetch the publisher stories for {customId}")
+            stories = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=take_num)))
+            stories = stories['stories']
+            publisher_stories[f'{customId}_stories.json'] = {
+                "source": {
+                    "id": id,
+                    "title": publisher['title'],
+                    "official_site": publisher['official_site']
+                },
+                "stories": stories
+            }
+    except Exception as e:
+        print("gql_fetch_publisher_stories error:", e)
+    return publisher_stories
 
 gql_mesh_publishers = '''
 query Publishers{
@@ -531,6 +563,64 @@ query Story{{
         }}
       }})
     }}
+  }}
+}}
+'''
+
+gql_publisher_latest_stories = '''
+query{{
+  stories(
+    where: {{
+      source: {{
+        id: {{
+          equals: {SOURCE_ID}
+        }}
+      }}
+    }},
+    orderBy: {{
+      published_date: desc
+    }},
+    take: {TAKE_NUM}
+  ){{
+  	id
+    title
+    url
+    og_title
+    og_image
+    og_description
+    published_date
+    picks: pick(
+      where: {{
+        kind: {{
+          equals: "read"
+        }},
+        is_active: {{
+          equals: true
+        }}
+      }}
+      take: 5
+    ){{
+      createdAt
+      member{{
+        id
+        name
+        avatar
+      }}
+    }}
+    picksCount: pickCount(
+      where: {{
+        kind: {{
+          equals: "read"
+        }},
+        is_active: {{
+          equals: true
+        }}
+      }}
+    )
+    commentCount
+    paywall
+    full_screen_ad
+    full_content
   }}
 }}
 '''

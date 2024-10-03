@@ -35,6 +35,7 @@ HOTPAGE_SPONSOR_PUBLISHER_STORY_NUM =3
 HOTPAGE_POPULAR_STORY_READS_NUM = 1000
 HOTPAGE_MOST_LIKE_COMMENTS_NUM = 4 # How many comments to reveal on hotpage
 HOTPAGE_RECENT_COMMENTS_NUM = 100 # How many comments to fetch likeCount recently
+PUBLISHER_STORIES_NUM = 240
 
 ### take number for each feeeder
 DEFAULT_READR_TAKE = 3
