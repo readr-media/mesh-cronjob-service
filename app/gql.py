@@ -46,7 +46,6 @@ def get_most_like_comment(gql_endpoint, story_id):
     most_like_comment = sorted(comments, key=lambda comment: comment.get('likeCount', 0), reverse=True)[0]
     return most_like_comment
 
-### GQL Query: Please follow the convention of gql_[product]_[list]
 gql_mesh_publishers = '''
 query Publishers{
   publishers{
@@ -102,27 +101,6 @@ query Publishers{
 }
 '''
 
-gql_mm_posts = '''
-  query {{
-    posts( where: {{state: {{equals: "published" }}, }}, take: {take}, orderBy: [{{id:desc}}] )
-    {{
-      id
-      style
-      slug
-      title
-      publishedDate
-      heroImage {{
-        resized {{
-          w800
-        }}
-      }}
-      brief
-      content
-      apiData
-    }}
-  }}
-'''
-
 gql_readr_posts = '''
 query {{
 posts(
@@ -158,34 +136,6 @@ mutation CreateStories($stories: [StoryCreateInput!]!){
     	url
   	}
 }
-'''
-
-gql_mm_partners = '''
-query {
-    partners{
-        id
-        name
-        slug
-    }
-}
-'''
-
-gql_mm_externals = '''
-query Externals{{
-  externals(
-      where:{{ partner: {{ id: {{ equals: {partner_id} }} }} }},
-      orderBy: {{ id: desc }}, take: {take}
-  )
-  {{
-      id
-      source
-      title
-      brief
-      content
-      publishedDate
-      thumb
-  }}
-}}
 '''
 
 # Example START_PUBLISHED_DATAE: "2024-06-01T17:30:15+05:30"
