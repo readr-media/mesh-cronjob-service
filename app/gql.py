@@ -84,6 +84,7 @@ query Publishers{
     id
     title
     rss
+    customId
     official_site
     source_type
     full_content
