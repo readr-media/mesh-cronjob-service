@@ -447,6 +447,6 @@ def category_recommend_sponsors():
     ### save and upload json
     for category_slug, publisher_stories in recommend_sponsor_table.items():
         filename = os.path.join('data', f'{category_slug}_recommend_sponsors.json')
-        save_file(filename, recommend_sponsor_table)
+        save_file(filename, publisher_stories)
         upload_blob(filename)
     
