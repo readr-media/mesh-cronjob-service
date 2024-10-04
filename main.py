@@ -109,3 +109,8 @@ async def data_open_publishers():
 async def data_publisher_stories():
   cronjob.publisher_stories()
   return "ok"
+
+@app.post('/cronjob/category_recommend_sponsors')
+async def data_category_recommend_sponsors():
+  cronjob.category_recommend_sponsors()
+  return "ok"

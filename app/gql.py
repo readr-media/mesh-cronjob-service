@@ -100,7 +100,18 @@ query Publishers{
     id
     title
     customId
+    source_type
+    official_site
     sponsoredCount
+  }
+}
+'''
+
+gql_mesh_categories = '''
+query Categories{
+  categories{
+    id
+    slug
   }
 }
 '''

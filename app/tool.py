@@ -1,7 +1,8 @@
 import os
 import json
 from google.cloud import storage
-from app.config import upload_configs
+import app.config as config
+import requests
 
 ### upload
 def upload_blob(dest_filename, cache_control: str = 'cache_control_short'):
@@ -10,7 +11,7 @@ def upload_blob(dest_filename, cache_control: str = 'cache_control_short'):
     bucket = storage_client.bucket(os.environ['BUCKET'])
     blob = bucket.blob(dest_filename)
     blob.upload_from_filename(dest_filename)
-    blob.cache_control = upload_configs[cache_control]
+    blob.cache_control = config.upload_configs[cache_control]
     blob.patch()
     print(f'upload {dest_filename} to blob successfully')
     
@@ -28,3 +29,12 @@ def open_file(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         file = json.load(f)
     return file
+
+def request_post(endpoint: str, body: dict):
+    json_data, error_message = None, None
+    try:
+        response = requests.post(endpoint, json=body, timeout=config.DEFAULT_REQUEST_TIMEOUT)
+        json_data = response.json()
+    except Exception as e:
+        error_message = e
+    return json_data, error_message

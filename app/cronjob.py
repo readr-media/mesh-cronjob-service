@@ -2,7 +2,7 @@ import psycopg2
 import os
 from datetime import datetime, timedelta
 import pytz
-from app.tool import save_file, upload_blob
+from app.tool import save_file, upload_blob, request_post
 from app.gql import *
 import app.config as config
 import copy
@@ -360,3 +360,93 @@ def publisher_stories():
         filename = os.path.join('data', filename)
         save_file(filename, stories)
         upload_blob(filename)
+  
+def category_recommend_sponsors():
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    proxy_endpoint = os.environ['MESH_PROXY_ENDPOINT']
+    
+    ### get publishers information
+    publishers = gql_query(gql_endpoint, gql_mesh_publishers_sponsor)
+    publishers = publishers['publishers']
+    publisher_table = {}
+    statistic_template = {}
+    for publisher in publishers:
+        source_type = publisher['source_type']
+        if source_type=='empty':
+            continue
+        id = publisher['id']
+        publisher_table[id]= {
+            'id': id,
+            'title': publisher['title'],
+            'customId': publisher['customId'],
+            'official_site': publisher['official_site'],
+            'sponsoredCount': publisher['sponsoredCount'],
+        }
+        statistic_template[id] = 0
+    all_publisher_ids = list(publisher_table.keys())
+    
+    ### get category information
+    categories = gql_query(gql_endpoint, gql_mesh_categories)
+    categories = categories['categories']
+    category_table = {}
+    for category in categories:
+        id = category['id']
+        slug = category['slug']
+        if 'test' not in slug: 
+            category_table[id]= slug
+            
+    ### recommend sponsored publishers, we get the data from redis
+    recommend_sponsor_table = {}
+    for category_id, category_slug in category_table.items():
+        # get data for this category
+        body = {
+            "publishers": all_publisher_ids,
+            "category": category_id
+        }
+        stories, error_msg = request_post(proxy_endpoint, body)
+        stories = stories['stories']
+        if error_msg:
+            print(f"something wrong when processing category {category_id}, error: {error_msg}")
+            continue
+
+        # calculate statistic
+        statistic_table = {} # count publisher_id and readsTotal mapping
+        publisher_stories = {} # keep publisher_id and stories mapping
+        for story in stories:
+            publisher_id = story['source']['id']
+            readsCount = story['picksCount']
+            statistic_table[publisher_id] = statistic_table.get(publisher_id, 0) + readsCount
+            story_list = publisher_stories.setdefault(publisher_id, [])
+            story_list.append({
+                "id": story['id'],
+                "url": story['url'],
+                "title": story['title'],
+                "published_date": story['published_date'],
+                "og_title": story["og_title"],
+                "og_image": story["og_image"],
+                "og_description": story["og_description"],
+                "full_screen_ad": story["full_screen_ad"],
+                "full_content": story["full_content"],
+                "commentCount": story['commentCount'],
+                "readsCount": readsCount
+            })
+
+        # sorting
+        recommend_publishers = sorted(statistic_table.items(), key=lambda item: item[1], reverse=True)[:config.RECOMMEND_SPONSOR_PUBLISHER_NUM]
+        recommend_publishers = [publisher[0] for publisher in recommend_publishers]
+        for publisher_id in recommend_publishers:
+            stories = publisher_stories.get(publisher_id, [])
+            sorted_stories = sorted(stories, key=lambda item: item['readsCount'], reverse=True)[:config.RECOMMEND_SPONSOR_STORY_NUM]
+            
+            sponsor_list = recommend_sponsor_table.setdefault(category_slug, [])
+            sponsor_list.append({
+                "publisher": publisher_table[publisher_id],
+                "stories": sorted_stories
+            })
+    
+    ### save and upload json
+    for category_slug, publisher_stories in recommend_sponsor_table.items():
+        filename = os.path.join('data', f'{category_slug}_recommend_sponsors.json')
+        save_file(filename, recommend_sponsor_table)
+        upload_blob(filename)
+    
