@@ -130,7 +130,7 @@ query Publishers{
 }
 '''
 
-### TODO: sponsorCount should be modified to real data after connecting cashflow
+### SponsorCount should be modified to real data after connecting cashflow
 gql_mesh_sponsor_publishers = '''
 query Publishers{
   publishers{
@@ -299,10 +299,11 @@ query stories($where: StoryWhereInput!){
   	og_title
     og_image
     og_description
+    isMember
     category{
       slug
     }
-    picksCount: pickCount(
+    readsCount: pickCount(
       where: {
         kind: {
           equals: "read"
@@ -312,23 +313,6 @@ query stories($where: StoryWhereInput!){
         }
       }
     )
-    picks: pick(
-      where: {
-        kind: {
-          equals: "read"
-        },
-        is_active: {
-          equals: true
-        }
-      }
-    ){
-      createdAt
-      member{
-        id
-        name
-        avatar
-      }
-    }
     commentCount
     paywall
     full_screen_ad

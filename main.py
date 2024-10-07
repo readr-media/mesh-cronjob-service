@@ -37,8 +37,8 @@ async def data_most_sponser_publisher():
   MOST_SPONSOR_STORY_DAYS = int(os.environ.get('MOST_SPONSOR_STORY_DAYS', config.DEFAULT_MOST_SPONSOR_STORY_DAYS))
   
   cronjob.most_sponsor_publisher(
-    most_sponsor_publisher_num = MOST_SPONSOR_PUBLISHER_NUM,
-    most_pickcount_publisher_num = MOST_PICKCOUNT_PUBLISHER_NUM,
+    most_sponsors_num = MOST_SPONSOR_PUBLISHER_NUM,
+    most_readscount_num = MOST_PICKCOUNT_PUBLISHER_NUM,
     most_sponsor_story_days = MOST_SPONSOR_STORY_DAYS
   )
   return "ok"
@@ -87,6 +87,9 @@ async def data_weekly_readr_post():
 
 @app.post('/cronjob/hotpage_sponsored_publishers')
 async def data_hotpage_sponsored_publishers():
+  '''
+    For main hotpage, we need to generate 3 most-sponsor publishers plus readr and their articles.
+  '''
   cronjob.hotpage_most_sponsor_publisher()
   return "ok"
 

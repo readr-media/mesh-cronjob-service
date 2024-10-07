@@ -153,7 +153,7 @@ def open_publishers():
   upload_blob(filename)
   return True
 
-def most_sponsor_publisher(most_sponsor_publisher_num: int, most_pickcount_publisher_num: int, most_sponsor_story_days: int):
+def most_sponsor_publisher(most_sponsors_num: int, most_readscount_num: int, most_sponsor_story_days: int):
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
   current_time = datetime.now(pytz.timezone('Asia/Taipei'))
   start_time = current_time - timedelta(days=most_sponsor_story_days)
@@ -162,11 +162,10 @@ def most_sponsor_publisher(most_sponsor_publisher_num: int, most_pickcount_publi
   ### query data
   all_publishers = gql_query(gql_endpoint, gql_mesh_sponsor_publishers)
   all_publishers = all_publishers['publishers']
-  publishers_mapping = {publisher['id']: publisher['title'] for publisher in all_publishers}
   
-  ### TODO: Sort by SponsorCount(mock-data is sorted by followerCount)
+  ### Sort by SponsorCount(mock-data is sorted by followerCount)
   sorted_publishers = sorted(all_publishers, key=lambda publisher: publisher.get('sponsorCount', 0), reverse=True)
-  sorted_publishers = sorted_publishers[:most_sponsor_publisher_num]
+  sorted_publishers = sorted_publishers[:most_sponsors_num]
   
   ### Pick top-[MOST_PICKCOUNT_PUBLISHER_NUM] stories for each publisher
   sponsor_publisher_ids = [publisher['id'] for publisher in sorted_publishers]
@@ -185,28 +184,29 @@ def most_sponsor_publisher(most_sponsor_publisher_num: int, most_pickcount_publi
   stories = gql_query(gql_endpoint, gql_mesh_sponsor_stories, query_variable)
   stories = stories['stories']
   
-  sponsor_publisher_stories = {}
+  sponsors_stories = {}
   for source_id in sponsor_publisher_ids:
-    sponsor_publisher_stories[publishers_mapping[source_id]] = []
+    sponsors_stories[source_id] = []
   for story in stories:
     source_id = story.get('source', {}).get('id', None)
     if source_id==None:
       continue
-    sponsor_publisher_stories.setdefault(publishers_mapping[source_id], []).append(story)
+    sponsors_stories.setdefault(source_id, []).append(story)
   
-  most_sponsor_publishers_stories = {}
-  for source_id, story_list in sponsor_publisher_stories.items():
-    sorted_story_list = sorted(story_list, key=lambda story: story.get('pickCount', 0), reverse=True)[:most_pickcount_publisher_num]
-    most_sponsor_publishers_stories[source_id] = sorted_story_list
+  ### organize into one file
+  most_recommend_sponsors = []
+  for publisher in sorted_publishers:
+    story_list = sponsors_stories.get(publisher['id'], [])
+    sorted_story_list = sorted(story_list, key=lambda story: story.get('readsCount', 0), reverse=True)[:most_readscount_num]
+    most_recommend_sponsors.append({
+      'publisher': publisher,
+      'stories': sorted_story_list,
+    })
   
   ### Save and upload
-  filename = os.path.join('data', f'most_sponsor_publishers.json')
-  save_file(filename, sorted_publishers)
+  filename = os.path.join('data', f'most_recommend_sponsors.json')
+  save_file(filename, most_recommend_sponsors)
   upload_blob(filename)
-  filename = os.path.join('data', f'most_sponsor_publishers_stories.json')
-  save_file(filename, most_sponsor_publishers_stories)
-  upload_blob(filename)
-  
   return True
 
 def media_statistics(all_stories: list):
