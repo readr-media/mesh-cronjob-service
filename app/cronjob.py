@@ -85,20 +85,21 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
               return False
             members = {row[0]: row[1] for row in rows}
             sql_member = '''
-              SELECT id, name, nickname, email, avatar FROM "Member"
+              SELECT id, name, nickname, email, avatar, "customId" FROM "Member"
               WHERE id IN %s;
             '''
             cur.execute(sql_member, (tuple(members.keys()),))
             rows = cur.fetchall()
             for row in rows:
-              id, name, nickname, email, avatar = row
+              id, name, nickname, email, avatar, customId = row
               data.append({
                   "id": id,
                   "pickCount": members[id],
                   "name": name,
                   "nickname": nickname,
                   "email": email,
-                  "avatar": avatar
+                  "avatar": avatar,
+                  "customId": customId
               })
             data = sorted(data, key=lambda member: member['pickCount'], reverse=True)
     except Exception as error: 

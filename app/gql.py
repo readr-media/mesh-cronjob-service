@@ -515,6 +515,7 @@ query Comments($where: CommentWhereInput!){
       id
       name
       avatar
+      customId
     }
     content
     story{
