@@ -288,9 +288,11 @@ query Stories{{
 '''
 
 gql_mesh_sponsor_stories = '''
-query stories($where: StoryWhereInput!){
+query stories($where: StoryWhereInput!, $orderBy: [StoryOrderByInput!]!, $take: Int){
   stories(
-    where: $where
+    where: $where,
+    orderBy: $orderBy,
+    take: $take
   ){
     id
     url
