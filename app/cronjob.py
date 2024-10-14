@@ -156,9 +156,6 @@ def open_publishers():
 
 def most_sponsor_publisher(most_sponsors_num: int, most_readscount_num: int, most_sponsor_story_days: int):
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
-  current_time = datetime.now(pytz.timezone('Asia/Taipei'))
-  start_time = current_time - timedelta(days=most_sponsor_story_days)
-  formatted_start_time = start_time.isoformat()
   
   ### query data
   all_publishers = gql_query(gql_endpoint, gql_mesh_sponsor_publishers)
@@ -176,11 +173,12 @@ def most_sponsor_publisher(most_sponsors_num: int, most_readscount_num: int, mos
         "id": {
           "in": list(sponsor_publisher_ids)
         },
-      },
-      "published_date":{
-        "gte": str(formatted_start_time)
       }
-    }
+    },
+    "orderBy": {
+       "id": "desc",
+    },
+    "take": 10,
   }
   stories = gql_query(gql_endpoint, gql_mesh_sponsor_stories, query_variable)
   stories = stories['stories']
