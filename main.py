@@ -30,16 +30,11 @@ async def health_checking():
 async def data_most_sponser_publisher():
   '''
   Generate top-[MOST_SPONSOR_PUBLISHERS_NUM] publishers which have most sponsors. 
-  For each publisher, we also select the top-[MOST_PICKCOUNT_PUBLISHER_NUM] pickCount stories. 
+  For each publisher, we also select the top-5 most recent stories. 
   '''
   MOST_SPONSOR_PUBLISHER_NUM = int(os.environ.get('MOST_SPONSOR_PUBLISHER_NUM', config.DEFAULT_MOST_SPONSOR_PUBLISHER_NUM))
-  MOST_PICKCOUNT_PUBLISHER_NUM = int(os.environ.get('MOST_PICKCOUNT_PUBLISHER_NUM', config.MOST_PICKCOUNT_PUBLISHER_NUM))
-  MOST_SPONSOR_STORY_DAYS = int(os.environ.get('MOST_SPONSOR_STORY_DAYS', config.DEFAULT_MOST_SPONSOR_STORY_DAYS))
-  
   cronjob.most_sponsor_publisher(
-    most_sponsors_num = MOST_SPONSOR_PUBLISHER_NUM,
-    most_readscount_num = MOST_PICKCOUNT_PUBLISHER_NUM,
-    most_sponsor_story_days = MOST_SPONSOR_STORY_DAYS
+    most_sponsors_num = MOST_SPONSOR_PUBLISHER_NUM
   )
   return "ok"
 

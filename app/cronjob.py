@@ -154,7 +154,7 @@ def open_publishers():
   upload_blob(filename)
   return True
 
-def most_sponsor_publisher(most_sponsors_num: int, most_readscount_num: int, most_sponsor_story_days: int):
+def most_sponsor_publisher(most_sponsors_num: int):
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
   
   ### query data
@@ -166,40 +166,27 @@ def most_sponsor_publisher(most_sponsors_num: int, most_readscount_num: int, mos
   sorted_publishers = sorted_publishers[:most_sponsors_num]
   
   ### Pick top-[MOST_PICKCOUNT_PUBLISHER_NUM] stories for each publisher
-  sponsor_publisher_ids = [publisher['id'] for publisher in sorted_publishers]
-  query_variable = {
-    "where": {
-      "source": {
-        "id": {
-          "in": list(sponsor_publisher_ids)
-        },
-      }
-    },
-    "orderBy": {
-       "id": "desc",
-    },
-    "take": 10,
-  }
-  stories = gql_query(gql_endpoint, gql_mesh_sponsor_stories, query_variable)
-  stories = stories['stories']
-  
-  sponsors_stories = {}
-  for source_id in sponsor_publisher_ids:
-    sponsors_stories[source_id] = []
-  for story in stories:
-    source_id = story.get('source', {}).get('id', None)
-    if source_id==None:
-      continue
-    sponsors_stories.setdefault(source_id, []).append(story)
-  
-  ### organize into one file
   most_recommend_sponsors = []
   for publisher in sorted_publishers:
-    story_list = sponsors_stories.get(publisher['id'], [])
-    sorted_story_list = sorted(story_list, key=lambda story: story.get('readsCount', 0), reverse=True)[:most_readscount_num]
+    id = publisher['id']
+    query_variable = {
+      "where": {
+        "source": {
+          "id": {
+            "equals": id
+          },
+        }
+      },
+      "orderBy": {
+        "id": "desc",
+      },
+      "take": 5,
+    }
+    stories = gql_query(gql_endpoint, gql_mesh_sponsor_stories, query_variable)
+    stories = stories['stories'] if stories['stories'] else []
     most_recommend_sponsors.append({
       'publisher': publisher,
-      'stories': sorted_story_list,
+      'stories': stories,
     })
   
   ### Save and upload
