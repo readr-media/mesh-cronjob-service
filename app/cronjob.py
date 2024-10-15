@@ -256,7 +256,7 @@ def recent_readr_stories(take: int):
 
 def hotpage_most_sponsor_publisher():
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
-  all_publishers = gql_query(gql_endpoint, gql_mesh_publishers_sponsor)
+  all_publishers = gql_query(gql_endpoint, gql_mesh_publishers)
   all_publishers = all_publishers['publishers']
   
   ### filter readr
@@ -352,7 +352,7 @@ def category_recommend_sponsors():
     proxy_endpoint = os.environ['MESH_PROXY_ENDPOINT']
     
     ### get publishers information
-    publishers = gql_query(gql_endpoint, gql_mesh_publishers_sponsor)
+    publishers = gql_query(gql_endpoint, gql_mesh_publishers)
     publishers = publishers['publishers']
     publisher_table = {}
     statistic_template = {}
@@ -364,6 +364,7 @@ def category_recommend_sponsors():
         publisher_table[id]= {
             'id': id,
             'title': publisher['title'],
+            'logo': publisher['logo'],
             'customId': publisher['customId'],
             'official_site': publisher['official_site'],
             'sponsoredCount': publisher['sponsoredCount'],

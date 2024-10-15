@@ -69,8 +69,12 @@ def gql_fetch_publisher_stories(gql_endpoint, take_num: int=config.PUBLISHER_STO
             publisher_stories[f'{customId}_stories.json'] = {
                 "source": {
                     "id": id,
+                    "customId": customId,
                     "title": publisher['title'],
-                    "official_site": publisher['official_site']
+                    "official_site": publisher['official_site'],
+                    "logo": publisher['logo'],
+                    "description": publisher['description'],
+                    "followerCount": publisher['followerCount']
                 },
                 "stories": stories
             }
@@ -83,26 +87,15 @@ query Publishers{
   publishers{
     id
     title
-    rss
     customId
+    logo
+    description
     official_site
     source_type
     full_content
     full_screen_ad
     sponsoredCount
-  }
-}
-'''
-
-gql_mesh_publishers_sponsor = '''
-query Publishers{
-  publishers{
-    id
-    title
-    customId
-    source_type
-    official_site
-    sponsoredCount
+    followerCount
   }
 }
 '''
