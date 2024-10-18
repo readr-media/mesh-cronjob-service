@@ -66,6 +66,11 @@ def gql_fetch_publisher_stories(gql_endpoint, take_num: int=config.PUBLISHER_STO
             print(f"fetch the publisher stories for {customId}")
             stories = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=take_num)))
             stories = stories['stories']
+            # calculate total picks
+            total_picksCount = 0
+            for story in stories:
+                total_picksCount += story['picksCount']
+            # format json
             publisher_stories[f'{customId}_stories.json'] = {
                 "source": {
                     "id": id,
@@ -75,7 +80,8 @@ def gql_fetch_publisher_stories(gql_endpoint, take_num: int=config.PUBLISHER_STO
                     "logo": publisher['logo'],
                     "description": publisher['description'],
                     "followerCount": publisher['followerCount'],
-                    "sponsoredCount": publisher['sponsoredCount']
+                    "sponsoredCount": publisher['sponsoredCount'],
+                    "picksCount": total_picksCount
                 },
                 "stories": stories
             }
