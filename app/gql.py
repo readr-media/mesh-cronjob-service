@@ -74,7 +74,8 @@ def gql_fetch_publisher_stories(gql_endpoint, take_num: int=config.PUBLISHER_STO
                     "official_site": publisher['official_site'],
                     "logo": publisher['logo'],
                     "description": publisher['description'],
-                    "followerCount": publisher['followerCount']
+                    "followerCount": publisher['followerCount'],
+                    "sponsoredCount": publisher['sponsoredCount']
                 },
                 "stories": stories
             }
