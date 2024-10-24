@@ -432,8 +432,8 @@ query Picks{{
 '''
 
 gql_most_recent_story = '''
-query Story{
-    story(orderBy: {id: desc}, take: 1){
+query Stories{
+    stories(orderBy: {id: desc}, take: 1){
       id
       title
       url
