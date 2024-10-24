@@ -292,7 +292,6 @@ def hotpage_most_popular_story():
 
     # get the most recent story as popular story in case of initial condition
     story = gql_query(gql_endpoint, gql_most_recent_story)
-    story = story['story']
     
     if recent_reads or len(recent_reads)>0:
       ### calculate each story's counts
