@@ -431,6 +431,59 @@ query Picks{{
 }}
 '''
 
+gql_most_recent_story = '''
+query Story{
+    story(orderBy: {id: desc}, take: 1){
+      id
+      title
+      url
+      summary
+      picks: pick(
+        where: {
+          kind: {
+            equals: "read"
+          },
+          is_active: {
+            equals: true
+          }
+        },
+        take: 5
+      ){
+        createdAt
+        member{
+          id
+          name
+          avatar
+        }
+      }
+      pickCount: pickCount(
+        where: {
+          kind: {
+            equals: "read"
+          },
+          is_active: {
+            equals: true
+          }
+        },
+      )
+      source{
+        id
+        title
+        customId
+      }
+      commentCount
+      og_title
+      og_image
+      og_description
+      full_content
+      paywall
+      isMember
+      published_date
+      full_screen_ad
+    }
+}
+'''
+
 gql_single_story = '''
 query Story{{
     story(where: {{id: {ID} }}){{

@@ -290,20 +290,25 @@ def hotpage_most_popular_story():
     recent_reads = gql_query(gql_endpoint, gql_recent_reads_str)
     recent_reads = recent_reads['picks']
 
-    ### calculate each story's counts
-    read_statistics = {}
-    for read in recent_reads:
-        story = read['story']
-        if story==None or isinstance(story, dict)==False:
-            continue
-        id = story.get('id', None)
-        if id==None:
-            continue
-        read_statistics[id] = read_statistics.get(id, 0) + 1
+    # get the most recent story as popular story in case of initial condition
+    story = gql_query(gql_endpoint, gql_most_recent_story)
+    story = story['story']
+    
+    if recent_reads or len(recent_reads)>0:
+      ### calculate each story's counts
+      read_statistics = {}
+      for read in recent_reads:
+          story = read['story']
+          if story==None or isinstance(story, dict)==False:
+              continue
+          id = story.get('id', None)
+          if id==None:
+              continue
+          read_statistics[id] = read_statistics.get(id, 0) + 1
 
-    ### sort and take the most popular one
-    most_reads_story = sorted(read_statistics.items(), key=lambda item: item[1], reverse=True)[0]
-    story = gql_query(gql_endpoint, gql_single_story.format(ID=most_reads_story[0]))
+      ### sort and take the most popular one
+      most_reads_story = sorted(read_statistics.items(), key=lambda item: item[1], reverse=True)[0]
+      story = gql_query(gql_endpoint, gql_single_story.format(ID=most_reads_story[0]))
     
     ### save and upload json
     filename = os.path.join('data', f'hotpage_most_popular_story.json')
