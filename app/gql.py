@@ -677,3 +677,28 @@ query{{
   }}
 }}
 '''
+
+### Get member info
+gql_member_info = '''
+query Members{{
+  members(orderBy: {{id: desc}}, take: {TAKE}){{
+    id
+    name
+    avatar
+    email
+    nickname
+    customId
+    pickCount(
+      where: {{
+        kind: {{
+          equals: "read"
+        }},
+        is_active: {{
+          equals: true
+        }}
+      }}
+    )
+    followerCount
+  }}
+}}
+'''

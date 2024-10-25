@@ -52,7 +52,7 @@ async def data_most_pick_story():
 @app.post('/cronjob/most_followers')
 async def data_most_followers():
   most_follower_num = int(os.environ.get('MOST_FOLLOWER_NUM', config.DEFAULT_MOST_FOLLOWER_NUM))
-  cronjob.most_followers(
+  cronjob.most_follower_members(
     most_follower_num=most_follower_num
   )
   return "ok"

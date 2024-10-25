@@ -7,7 +7,8 @@ from app.gql import *
 import app.config as config
 import copy
 
-def most_followers(most_follower_num: int):
+def most_follower_members(most_follower_num: int):
+    MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
     data = []
     conn = psycopg2.connect(
       database = os.environ['DB_NAME'], 
@@ -51,12 +52,29 @@ def most_followers(most_follower_num: int):
       print("Error while get_most_followers:", error)
     finally:
       conn.close()
+    
+    # If the legnth of data is less than most_follower_num, add new member info
+    if len(data)<most_follower_num:
+      ids = set([member['id'] for member in data])
+      members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_follower_num))
+      additional_members = members['members']
+      for member in additional_members:
+        id = member['id']
+        if id not in ids:
+          data.append(member)
+        if len(data) >= most_follower_num:
+          break
+    # If the length of data is still empty, add dummy data
+    if len(data)==0:
+      data.append(config.DUMMY_MEMBER_INFO)
+    
     filename = os.path.join('data', 'most_followers.json')
     save_file(filename, data)
     upload_blob(filename)
     return True
   
 def most_read_members(most_read_member_days: int, most_read_member_num: int):
+    MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
     current_time = datetime.now(pytz.timezone('Asia/Taipei'))
     start_time = current_time - timedelta(days=most_read_member_days)
     start_time = start_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -106,6 +124,22 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
       print("Error while get_most_followers:", error)
     finally:
       conn.close()
+    
+    # If the legnth of data is less than most_follower_num, add new member info
+    if len(data)<most_read_member_num:
+      ids = set([member['id'] for member in data])
+      members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_read_member_num))
+      additional_members = members['members']
+      for member in additional_members:
+        id = member['id']
+        if id not in ids:
+          data.append(member)
+        if len(data) >= most_read_member_num:
+          break
+    # If the length of data is still empty, add dummy data
+    if len(data)==0:
+      data.append(config.DUMMY_MEMBER_INFO)
+      
     ### upload data
     filename = os.path.join('data', 'most_read_members.json')
     save_file(filename, data)
