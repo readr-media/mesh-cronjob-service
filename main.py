@@ -51,7 +51,6 @@ async def data_most_pick_story():
 
 @app.post('/cronjob/most_followers')
 async def data_most_followers():
-  print("invoke most_follower")
   most_follower_num = int(os.environ.get('MOST_FOLLOWER_NUM', config.DEFAULT_MOST_FOLLOWER_NUM))
   cronjob.most_follower_members(
     most_follower_num=most_follower_num
@@ -60,7 +59,6 @@ async def data_most_followers():
 
 @app.post('/cronjob/most_read_members')
 async def data_most_read_members():
-  print("invok most_read_members")
   most_read_member_num = int(os.environ.get('MOST_READ_MEMBER_NUM', config.DEFAULT_MOST_READ_MEMBER_NUM))
   most_read_member_days = int(os.environ.get('MOST_READ_MEMBER_DAYS', config.DEFAULT_MOST_READ_MEMBER_DAYS))
   cronjob.most_read_members(

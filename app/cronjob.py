@@ -28,33 +28,31 @@ def most_follower_members(most_follower_num: int):
         with conn.cursor() as cur:
             cur.execute(sql_member_follower_string)
             rows = cur.fetchall()
-            if len(rows)==0:
-              return False
-            members = {row[0]: row[1] for row in rows}
-            sql_member = '''
-              SELECT id, name, "customId", nickname, avatar FROM "Member"
-              WHERE id IN %s;
-            '''
-            cur.execute(sql_member, (tuple(members.keys()),))
-            rows = cur.fetchall()
-            for row in rows:
-              id, name, customId, nickname, avatar = row
-              data.append({
-                  "id": id,
-                  "followerCount": members[id],
-                  "name": name,
-                  "nickname": nickname,
-                  "customId": customId,
-                  "avatar": avatar
-              })
-            data = sorted(data, key=lambda member: member['followerCount'], reverse=True)
+            if len(rows)>0:
+              members = {row[0]: row[1] for row in rows}
+              sql_member = '''
+                SELECT id, name, "customId", nickname, avatar FROM "Member"
+                WHERE id IN %s;
+              '''
+              cur.execute(sql_member, (tuple(members.keys()),))
+              rows = cur.fetchall()
+              for row in rows:
+                id, name, customId, nickname, avatar = row
+                data.append({
+                    "id": id,
+                    "followerCount": members[id],
+                    "name": name,
+                    "nickname": nickname,
+                    "customId": customId,
+                    "avatar": avatar
+                })
+              data = sorted(data, key=lambda member: member['followerCount'], reverse=True)
     except Exception as error: 
       print("Error while get_most_followers:", error)
     finally:
       conn.close()
-    
+      
     # If the legnth of data is less than most_follower_num, add new member info
-    print(f"The length of data before adding existing members: {len(data)}")
     if len(data)<most_follower_num:
       ids = set([member['id'] for member in data])
       members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_follower_num))
@@ -66,10 +64,8 @@ def most_follower_members(most_follower_num: int):
         if len(data) >= most_follower_num:
           break
     # If the length of data is still empty, add dummy data
-    print(f"The length of data before adding dummy members: {len(data)}")
     if len(data)==0:
       data.append(config.DUMMY_MEMBER_INFO)
-    print(data)
     
     filename = os.path.join('data', 'most_followers.json')
     save_file(filename, data)
@@ -102,34 +98,32 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
         with conn.cursor() as cur:
             cur.execute(sql_pick_string)
             rows = cur.fetchall()
-            if len(rows)==0:
-              return False
-            members = {row[0]: row[1] for row in rows}
-            sql_member = '''
-              SELECT id, name, nickname, email, avatar, "customId" FROM "Member"
-              WHERE id IN %s;
-            '''
-            cur.execute(sql_member, (tuple(members.keys()),))
-            rows = cur.fetchall()
-            for row in rows:
-              id, name, nickname, email, avatar, customId = row
-              data.append({
-                  "id": id,
-                  "pickCount": members[id],
-                  "name": name,
-                  "nickname": nickname,
-                  "email": email,
-                  "avatar": avatar,
-                  "customId": customId
-              })
-            data = sorted(data, key=lambda member: member['pickCount'], reverse=True)
+            if len(rows)>0:
+              members = {row[0]: row[1] for row in rows}
+              sql_member = '''
+                SELECT id, name, nickname, email, avatar, "customId" FROM "Member"
+                WHERE id IN %s;
+              '''
+              cur.execute(sql_member, (tuple(members.keys()),))
+              rows = cur.fetchall()
+              for row in rows:
+                id, name, nickname, email, avatar, customId = row
+                data.append({
+                    "id": id,
+                    "pickCount": members[id],
+                    "name": name,
+                    "nickname": nickname,
+                    "email": email,
+                    "avatar": avatar,
+                    "customId": customId
+                })
+              data = sorted(data, key=lambda member: member['pickCount'], reverse=True)
     except Exception as error: 
       print("Error while get_most_followers:", error)
     finally:
       conn.close()
     
     # If the legnth of data is less than most_follower_num, add new member info
-    print(f"The length of data before adding existing members: {len(data)}")
     if len(data)<most_read_member_num:
       ids = set([member['id'] for member in data])
       members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_read_member_num))
@@ -141,10 +135,8 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
         if len(data) >= most_read_member_num:
           break
     # If the length of data is still empty, add dummy data
-    print(f"The length of data before adding dummy members: {len(data)}")
     if len(data)==0:
       data.append(config.DUMMY_MEMBER_INFO)
-    print(data)
     
     ### upload data
     filename = os.path.join('data', 'most_read_members.json')
