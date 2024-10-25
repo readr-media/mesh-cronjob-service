@@ -42,3 +42,15 @@ RECOMMEND_SPONSOR_STORY_NUM = 3
 DEFAULT_READR_TAKE = 3
 DEFAULT_MM_EXTERNAL_TAKE = 20
 DEFAULT_MM_TAKE = 10
+
+### Dummy
+DUMMY_MEMBER_INFO = {
+    "id": -1,
+    "name": "",
+    "nickname": "",
+    "email": "",
+    "avatar": "",
+    "customId": "",
+    "pickCount": 0,
+    "followerCount": 0,
+}

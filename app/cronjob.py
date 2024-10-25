@@ -64,6 +64,10 @@ def most_follower_members(most_follower_num: int):
         if len(data) >= most_follower_num:
           break
     
+    # If the length of data is still empty, add dummy data
+    if len(data)==0:
+      data.append(config.DUMMY_MEMBER_INFO)
+    
     filename = os.path.join('data', 'most_followers.json')
     save_file(filename, data)
     upload_blob(filename)
@@ -131,6 +135,10 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
           data.append(member)
         if len(data) >= most_read_member_num:
           break
+        
+    # If the length of data is still empty, add dummy data
+    if len(data)==0:
+      data.append(config.DUMMY_MEMBER_INFO)
     
     ### upload data
     filename = os.path.join('data', 'most_read_members.json')
