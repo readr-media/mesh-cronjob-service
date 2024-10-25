@@ -54,6 +54,7 @@ def most_follower_members(most_follower_num: int):
       conn.close()
     
     # If the legnth of data is less than most_follower_num, add new member info
+    print(f"The length of data before adding existing members: {len(data)}")
     if len(data)<most_follower_num:
       ids = set([member['id'] for member in data])
       members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_follower_num))
@@ -65,8 +66,10 @@ def most_follower_members(most_follower_num: int):
         if len(data) >= most_follower_num:
           break
     # If the length of data is still empty, add dummy data
+    print(f"The length of data before adding dummy members: {len(data)}")
     if len(data)==0:
       data.append(config.DUMMY_MEMBER_INFO)
+    print(data)
     
     filename = os.path.join('data', 'most_followers.json')
     save_file(filename, data)
@@ -126,6 +129,7 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
       conn.close()
     
     # If the legnth of data is less than most_follower_num, add new member info
+    print(f"The length of data before adding existing members: {len(data)}")
     if len(data)<most_read_member_num:
       ids = set([member['id'] for member in data])
       members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_read_member_num))
@@ -137,9 +141,11 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
         if len(data) >= most_read_member_num:
           break
     # If the length of data is still empty, add dummy data
+    print(f"The length of data before adding dummy members: {len(data)}")
     if len(data)==0:
       data.append(config.DUMMY_MEMBER_INFO)
-      
+    print(data)
+    
     ### upload data
     filename = os.path.join('data', 'most_read_members.json')
     save_file(filename, data)
