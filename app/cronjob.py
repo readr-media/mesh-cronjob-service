@@ -484,7 +484,7 @@ def invalid_names():
     names = names['invalidNames']
     
     # convert names to lowercase
-    names = [name.lower() for name in names]
+    names = [name['name'].lower() for name in names]
     
     # save and upload json
     filename = os.path.join('data', f'invalid_names.json')
