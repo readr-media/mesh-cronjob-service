@@ -488,5 +488,5 @@ def invalid_names():
     
     # save and upload json
     filename = os.path.join('data', f'invalid_names.json')
-    save_file(filename, publisher_stories)
+    save_file(filename, names)
     upload_blob(filename)
