@@ -477,4 +477,16 @@ def category_recommend_sponsors():
         filename = os.path.join('data', f'{category_slug}_recommend_sponsors.json')
         save_file(filename, publisher_stories)
         upload_blob(filename)
+
+def invalid_names():
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    names = gql_query(gql_endpoint, gql_invalid_names)
+    names = names['invalidNames']
     
+    # convert names to lowercase
+    names = [name.lower() for name in names]
+    
+    # save and upload json
+    filename = os.path.join('data', f'invalid_names.json')
+    save_file(filename, publisher_stories)
+    upload_blob(filename)

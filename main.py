@@ -112,3 +112,8 @@ async def data_publisher_stories():
 async def data_category_recommend_sponsors():
   cronjob.category_recommend_sponsors()
   return "ok"
+
+@app.post('/cronjob/invalid_names')
+async def data_invalid_names():
+  cronjob.invalid_names()
+  return "ok"

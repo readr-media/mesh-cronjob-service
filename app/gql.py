@@ -702,3 +702,12 @@ query Members{{
   }}
 }}
 '''
+
+### Invalid names info
+gql_invalid_names = '''
+query InvalidNames{
+  invalidNames{
+    name
+  }
+}
+'''
