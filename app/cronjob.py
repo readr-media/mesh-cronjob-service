@@ -58,7 +58,7 @@ def most_follower_members(most_follower_num: int):
       members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_follower_num))
       additional_members = members['members']
       for member in additional_members:
-        id = member['id']
+        id = int(member['id'])
         if id not in ids:
           data.append(member)
         if len(data) >= most_follower_num:
