@@ -60,6 +60,7 @@ def most_follower_members(most_follower_num: int):
       for member in additional_members:
         id = int(member['id'])
         if id not in ids:
+          member['id'] = id
           data.append(member)
         if len(data) >= most_follower_num:
           break
