@@ -244,11 +244,14 @@ def media_statistics(all_stories: list):
     }
   
   ### categorize stories
+  media_keys = set(statistics.keys())
   for story in all_stories:
     source = story['source']
     if source==None or isinstance(source, dict)==False:
       continue
     media_id = story['source']['id']
+    if media_id not in media_keys:
+      continue
     readsCount = story['readsCount']
     statistics[media_id]['readsCount'] += readsCount
   
