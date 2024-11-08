@@ -105,13 +105,15 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
             if len(rows)>0:
               members = {row[0]: row[1] for row in rows}
               sql_member = '''
-                SELECT id, name, nickname, email, avatar, "customId" FROM "Member"
+                SELECT id, name, nickname, email, avatar, "customId", is_active FROM "Member"
                 WHERE id IN %s;
               '''
               cur.execute(sql_member, (tuple(members.keys()),))
               rows = cur.fetchall()
               for row in rows:
-                id, name, nickname, email, avatar, customId = row
+                id, name, nickname, email, avatar, customId, is_active = row
+                if is_active==False:
+                  continue
                 data.append({
                     "id": id,
                     "pickCount": members[id],
