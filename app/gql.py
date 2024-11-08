@@ -681,7 +681,7 @@ query{{
 ### Get member info
 gql_member_info = '''
 query Members{{
-  members(orderBy: {{id: desc}}, take: {TAKE}){{
+  members(where: {{is_active: {{equals: true}} }}, orderBy: {{id: desc}}, take: {TAKE}){{
     id
     name
     avatar

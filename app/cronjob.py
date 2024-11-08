@@ -31,13 +31,15 @@ def most_follower_members(most_follower_num: int):
             if len(rows)>0:
               members = {row[0]: row[1] for row in rows}
               sql_member = '''
-                SELECT id, name, "customId", nickname, avatar FROM "Member"
+                SELECT id, name, "customId", nickname, avatar, is_active FROM "Member"
                 WHERE id IN %s;
               '''
               cur.execute(sql_member, (tuple(members.keys()),))
               rows = cur.fetchall()
               for row in rows:
-                id, name, customId, nickname, avatar = row
+                id, name, customId, nickname, avatar, is_active = row
+                if is_active==False:
+                  continue
                 data.append({
                     "id": id,
                     "followerCount": members[id],
