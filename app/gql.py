@@ -605,6 +605,7 @@ query Story{{
     {{
       id
       content
+      createdAt
       member{{
         id
         name
