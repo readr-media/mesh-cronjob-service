@@ -610,6 +610,7 @@ query Story{{
         id
         name
         avatar
+        customId
       }}
       likeCount(where: {{
         is_active: {{
