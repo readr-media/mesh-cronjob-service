@@ -349,8 +349,7 @@ def hotpage_most_popular_story(days: int=config.HOTPAGE_POPULAR_STORY_DAYS):
 
     # get full content
     story_id = most_popular_story['id']
-    data = gql_query(gql_endpoint, gql_single_story.format(ID=story_id))
-    story = data['story']
+    story = gql_query(gql_endpoint, gql_single_story.format(ID=story_id))
     
     ### save and upload json
     filename = os.path.join('data', f'hotpage_most_popular_story.json')
