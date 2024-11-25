@@ -328,34 +328,29 @@ def hotpage_most_sponsor_publisher():
   save_file(filename, most_sponsored_publishers)
   upload_blob(filename)
   
-def hotpage_most_popular_story():
+def hotpage_most_popular_story(days: int=config.HOTPAGE_POPULAR_STORY_DAYS):
     ### get recent picks
     gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
-    gql_recent_reads_str = gql_recent_reads.format(TAKE=config.HOTPAGE_POPULAR_STORY_READS_NUM)
-    recent_reads = gql_query(gql_endpoint, gql_recent_reads_str)
-    recent_reads = recent_reads['picks']
-
-    # get the most recent story as popular story in case of initial condition
-    stories = gql_query(gql_endpoint, gql_most_recent_story)
-    story = {
-      "story": stories["stories"][0]
-    }
+    current_time = datetime.now(pytz.timezone('Asia/Taipei'))
+    start_time = current_time - timedelta(days=days)
+    formatted_start_time = start_time.isoformat()
     
-    if recent_reads or len(recent_reads)>0:
-      ### calculate each story's counts
-      read_statistics = {}
-      for read in recent_reads:
-          story = read['story']
-          if story==None or isinstance(story, dict)==False:
-              continue
-          id = story.get('id', None)
-          if id==None:
-              continue
-          read_statistics[id] = read_statistics.get(id, 0) + 1
+    # search for most popular story id
+    mutation = {
+    "where": {
+            "published_date": {
+                "gt": formatted_start_time
+            }
+        }
+    }
+    data = gql_query(gql_endpoint, gql_most_popular_story, mutation)
+    stories = data['stories']
+    most_popular_story = sorted(stories, key=lambda story: story['pickCount'], reverse=True)[0]
 
-      ### sort and take the most popular one
-      most_reads_story = sorted(read_statistics.items(), key=lambda item: item[1], reverse=True)[0]
-      story = gql_query(gql_endpoint, gql_single_story.format(ID=most_reads_story[0]))
+    # get full content
+    story_id = most_popular_story['id']
+    data = gql_query(gql_endpoint, gql_single_story.format(ID=story_id))
+    story = data['story']
     
     ### save and upload json
     filename = os.path.join('data', f'hotpage_most_popular_story.json')

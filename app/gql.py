@@ -713,3 +713,21 @@ query InvalidNames{
   }
 }
 '''
+
+gql_most_popular_story = '''
+query stories($where: StoryWhereInput!){
+    stories(where: $where, orderBy: {id: desc}){
+        id
+        pickCount(
+            where: {
+                kind: {
+                    equals: "read"
+                },
+                is_active: {
+                    equals: true
+                }
+            }
+        )
+    }  
+}
+'''
