@@ -202,7 +202,7 @@ def open_publishers():
         "title": publisher['title'],
         "customId": publisher['customId']
       })
-      add_document(config.MEILISEARCH_PUBLISHER_INDEX, search_publishers)
+    add_document(config.MEILISEARCH_PUBLISHER_INDEX, search_publishers)
   except Exception as e:
     print(f'Open publishers: add document failed, reason {e}')
   return True
