@@ -200,7 +200,8 @@ def open_publishers():
       search_publishers.append({
         "id": publisher['id'],
         "title": publisher['title'],
-        "customId": publisher['customId']
+        "customId": publisher['customId'],
+        "logo": publisher['logo'],
       })
     add_document(config.MEILISEARCH_PUBLISHER_INDEX, search_publishers)
   except Exception as e:
