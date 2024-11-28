@@ -43,6 +43,9 @@ DEFAULT_READR_TAKE = 3
 DEFAULT_MM_EXTERNAL_TAKE = 20
 DEFAULT_MM_TAKE = 10
 
+### for Meilisearch
+MEILISEARCH_PUBLISHER_INDEX = 'mesh_publisher'
+
 ### Dummy
 DUMMY_MEMBER_INFO = {
     "id": -1,

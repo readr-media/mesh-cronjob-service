@@ -6,6 +6,7 @@ from app.tool import save_file, upload_blob, request_post
 from app.gql import *
 import app.config as config
 import copy
+from app.meilisearch import add_document
 
 def most_follower_members(most_follower_num: int):
     MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
@@ -191,6 +192,19 @@ def open_publishers():
   filename = os.path.join('data', f'open_publishers.json')
   save_file(filename, publishers)
   upload_blob(filename)
+  
+  ### save meilisearch
+  try:
+    search_publishers = []
+    for publisher in all_publishers:
+      search_publishers.append({
+        "id": publisher['id'],
+        "title": publisher['title'],
+        "customId": publisher['customId']
+      })
+      add_document(config.MEILISEARCH_PUBLISHER_INDEX, search_publishers)
+  except Exception as e:
+    print(f'Open publishers: add document failed, reason {e}')
   return True
 
 def most_sponsor_publisher(most_sponsors_num: int):

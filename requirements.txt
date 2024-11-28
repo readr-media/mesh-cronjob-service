@@ -13,3 +13,4 @@ numpy==1.23.5
 requests_toolbelt==0.10.1
 google-cloud-storage==1.33.0
 pytz==2023.3.post1
+meilisearch
