@@ -521,8 +521,8 @@ def check_transaction():
     db = connect_db(mongo_url, env)
     
     # Fetch transactions
-    current_time = datetime.datetime.now(pytz.timezone('Asia/Taipei'))
-    end_time = current_time + datetime.timedelta(days=config.TRANSACTION_NOTIFY_DAYS)
+    current_time = datetime.now(pytz.timezone('Asia/Taipei'))
+    end_time = current_time + timedelta(days=config.TRANSACTION_NOTIFY_DAYS)
     expire_date = end_time.isoformat()
     
     data = gql_query(gql_endpoint, gql_expire_transactions.format(EXPIRE_DATE = expire_date))
@@ -535,7 +535,7 @@ def check_transaction():
     expired_txs, approach_expire_txs = [], []
     for tx in transactions:
         expire_time = tx['expireDate']
-        expire_timestamp = datetime.datetime.strptime(expire_time, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
+        expire_timestamp = datetime.strptime(expire_time, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
         if expire_timestamp > cur_timestamp:
             approach_expire_txs.append(tx)
         else:
