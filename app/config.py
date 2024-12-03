@@ -37,6 +37,7 @@ HOTPAGE_RECENT_COMMENTS_NUM = 100 # How many comments to fetch likeCount recentl
 PUBLISHER_STORIES_NUM = 240
 RECOMMEND_SPONSOR_PUBLISHER_NUM = 5
 RECOMMEND_SPONSOR_STORY_NUM = 3
+TRANSACTION_NOTIFY_DAYS = 3
 
 ### take number for each feeeder
 DEFAULT_READR_TAKE = 3
@@ -45,6 +46,9 @@ DEFAULT_MM_TAKE = 10
 
 ### for Meilisearch
 MEILISEARCH_PUBLISHER_INDEX = 'mesh_publisher'
+
+### for mongo
+MOST_NOTIFY_RECORDS = 200
 
 ### Dummy
 DUMMY_MEMBER_INFO = {

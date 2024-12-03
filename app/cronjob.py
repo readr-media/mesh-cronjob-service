@@ -7,6 +7,8 @@ from app.gql import *
 import app.config as config
 import copy
 from app.meilisearch import add_document
+from app.mongo import connect_db
+from app.tool import get_current_timestamp, gen_uuid
 
 def most_follower_members(most_follower_num: int):
     MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
@@ -511,3 +513,114 @@ def invalid_names():
     filename = os.path.join('data', f'invalid_names.json')
     save_file(filename, names)
     upload_blob(filename)
+    
+def check_transaction():
+    mongo_url = os.environ['MONGO_URL']
+    env = os.environ.get('ENV', 'dev')
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    db = connect_db(mongo_url, env)
+    
+    # Fetch transactions
+    current_time = datetime.datetime.now(pytz.timezone('Asia/Taipei'))
+    end_time = current_time + datetime.timedelta(days=config.TRANSACTION_NOTIFY_DAYS)
+    expire_date = end_time.isoformat()
+    
+    data = gql_query(gql_endpoint, gql_expire_transactions.format(EXPIRE_DATE = expire_date))
+    transactions = data['transactions']
+    if len(transactions)==0:
+        return True
+    
+    # Categorize transactions
+    cur_timestamp = get_current_timestamp()
+    expired_txs, approach_expire_txs = [], []
+    for tx in transactions:
+        expire_time = tx['expireDate']
+        expire_timestamp = datetime.datetime.strptime(expire_time, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
+        if expire_timestamp > cur_timestamp:
+            approach_expire_txs.append(tx)
+        else:
+            expired_txs.append(tx)
+    
+    # Update expired txs active to False
+    try:
+        var = {
+            "data": [
+                {
+                    "where": {
+                        "id": tx['id']
+                    },
+                    "data": {
+                        "active": False
+                    }
+                }
+                for tx in expired_txs
+            ] 
+        }
+        data = gql_query(gql_endpoint, gql_disable_transactions, var)
+        disable_txs = data['updateTransactions']
+        print("Disable expired transactions number: ", len(disable_txs))
+    except Exception as e:
+        print("Failed to update transactions state, reason: ", str(e))
+    
+    ### notify approach expire txs
+    # categorize approach expire txs into different memberId
+    categorized_expire_txs = {}
+    for tx in approach_expire_txs:
+        try:
+            transactionId = tx['id'] 
+            memberId = tx['member']['id']
+            notify_tx = {
+                "uuid": gen_uuid(),
+                "read": False,
+                "action": "approach_expiration",
+                "objective": "transaction",
+                "targetId": transactionId,
+                "ts": cur_timestamp,
+                "content": {
+                    "id": transactionId,
+                    "status": tx["status"],
+                    "expireDate": tx["expireDate"],
+                    "policy": tx["policy"],
+                    "unlockStory": tx["unlockStory"]
+                }
+            }
+            notify_list = categorized_expire_txs.setdefault(memberId, [])
+            notify_list.append(notify_tx)
+        except Exception as e:
+            print("Fail to notify transactionId: ", tx)
+
+    ### notify members
+    col_notify = db.notifications
+    for memberId, new_notifies in categorized_expire_txs.items():
+        record = col_notify.find_one(memberId)
+        if record==None:
+            record = {
+                "_id": memberId,
+                "lrt": 0,
+                "notifies": new_notifies
+            }
+            col_notify.insert_one(record)
+        else:
+            all_notifies = record['notifies']
+
+            # organize old approach expiration notifies
+            published_expiration_notifies = set()
+            for notify in all_notifies:
+                action = notify['action']
+                objective = notify['objective']
+                targetId = notify['targetId']
+                if action=='approach_expiration' and objective=='transaction':
+                    published_expiration_notifies.add(targetId)
+            
+            # check if the notification already exist
+            for notify in new_notifies:
+                targetId = notify['targetId']
+                if targetId not in published_expiration_notifies:
+                    all_notifies.insert(0, notify)
+                    print("Insert new notify", notify)
+            all_notifies = all_notifies[:config.MOST_NOTIFY_RECORDS]
+            col_notify.update_one(
+                {"_id": memberId},
+                {"$set": {"notifies": all_notifies}}
+            )
+    return True

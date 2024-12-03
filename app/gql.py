@@ -731,3 +731,36 @@ query stories($where: StoryWhereInput!){
     }  
 }
 '''
+
+# For transactions
+gql_expire_transactions = '''
+query transactions{{
+  transactions(where: {{expireDate: {{lt: "{EXPIRE_DATE}" }}, active: {{ equals: true }} }}, orderBy: {{expireDate: desc}}){{
+        id
+        status
+        active
+        expireDate
+        member{{
+            id
+        }}
+        policy{{
+            id
+            name
+            type
+        }}
+        unlockStory{{
+            id
+            title
+        }}
+  }}
+}}
+'''
+
+gql_disable_transactions = '''
+mutation updateTransactions($data: [TransactionUpdateArgs!]!){
+  updateTransactions(data: $data){
+    id
+    active
+  }
+}
+'''

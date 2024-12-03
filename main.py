@@ -117,3 +117,8 @@ async def data_category_recommend_sponsors():
 async def data_invalid_names():
   cronjob.invalid_names()
   return "ok"
+
+@app.post('/cronjob/check_transactions')
+async def data_check_transactions():
+  cronjob.check_transaction()
+  return "ok"

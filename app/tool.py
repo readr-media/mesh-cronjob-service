@@ -3,6 +3,8 @@ import json
 from google.cloud import storage
 import app.config as config
 import requests
+import uuid
+import datetime
 
 ### upload
 def upload_blob(dest_filename, cache_control: str = 'cache_control_short'):
@@ -38,3 +40,9 @@ def request_post(endpoint: str, body: dict):
     except Exception as e:
         error_message = e
     return json_data, error_message
+
+def gen_uuid():
+    return str(uuid.uuid4())[:8]
+
+def get_current_timestamp():
+    return int(datetime.datetime.now().timestamp())
