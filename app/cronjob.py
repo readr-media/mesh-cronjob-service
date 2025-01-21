@@ -89,11 +89,15 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
     members = gql_query(MESH_GQL_ENDPOINT, gql_member_read_statistic.format(START_TIME=start_time))
     members = members['members']
 
-    # sorted by pickCount and upload
-    sorted_comments = sorted(members, key=lambda item: item['pickCount'], reverse=True)[:most_read_member_num]
-    if sorted_comments:
+    # sorted by pickCount
+    sorted_members = sorted(members, key=lambda item: item['pickCount'], reverse=True)[:most_read_member_num]
+    
+    # format datatype and upload
+    for idx, member in enumerate(sorted_members):
+      sorted_members[idx]['id'] = int(member['id'])
+    if sorted_members:
       filename = os.path.join('data', 'most_read_members.json')
-      save_file(filename, sorted_comments)
+      save_file(filename, sorted_members)
       upload_blob(filename)
     return True
   
