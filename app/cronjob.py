@@ -374,10 +374,14 @@ def hotpage_most_popular_story(days: int=config.HOTPAGE_POPULAR_STORY_DAYS):
     save_file(filename, story)
     upload_blob(filename)
     
-def hotpage_most_like_comments():
+def hotpage_most_like_comments(days=config.HOTPAGE_MOST_LIKE_DAYS):
     ### get recent comments
+    current_time = datetime.now(pytz.timezone('Asia/Taipei'))
+    start_time = current_time - timedelta(days=days)
+    start_time = start_time.isoformat()
+    
     gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
-    comments = gql_query(gql_endpoint, gql_comment_statistic.format(TAKE=config.HOTPAGE_RECENT_COMMENTS_NUM))
+    comments = gql_query(gql_endpoint, gql_comment_statistic.format(START_TIME=start_time ,TAKE=config.HOTPAGE_RECENT_COMMENTS_NUM))
     comments = comments['comments']
 
     ### sort comment by likeCount

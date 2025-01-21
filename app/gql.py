@@ -544,7 +544,8 @@ query Comments{{
     where: {{
       like: {{some: {{}} }},
       story: {{ NOT: {{}} }},
-      is_active: {{equals: true}}
+      is_active: {{equals: true}},
+      published_date: {{ gt: "{START_TIME}" }}
     }}, 
     orderBy: {{id: desc}}, 
     take: {TAKE}
