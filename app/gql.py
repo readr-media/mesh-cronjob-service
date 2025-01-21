@@ -560,6 +560,26 @@ query Comments{{
 }}
 '''
 
+gql_member_read_statistic = '''
+query members{{
+  members(where: {{is_active: {{equals: true}} }}, orderBy: {{id: desc}}){{
+    id
+    name
+    nickname
+    email
+    avatar
+    customId
+    pickCount(
+      where: {{
+        kind: {{equals: "read"}}, 
+        is_active: {{equals: true}}, 
+        createdAt: {{gt: "{START_TIME}" }}
+      }}
+    )
+  }}
+}}
+'''
+
 ### reveal the detail information about comment
 # Note: This operation use lots of relation data, don't pass in too many CommentWhereInput elements
 gql_comment_detail = '''

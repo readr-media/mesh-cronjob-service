@@ -78,80 +78,23 @@ def most_follower_members(most_follower_num: int):
     save_file(filename, data)
     upload_blob(filename)
     return True
-  
+
 def most_read_members(most_read_member_days: int, most_read_member_num: int):
+    # get members and their reads data
     MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
     current_time = datetime.now(pytz.timezone('Asia/Taipei'))
     start_time = current_time - timedelta(days=most_read_member_days)
-    start_time = start_time.strftime('%Y-%m-%d %H:%M:%S')
-      
-    data = []
-    conn = psycopg2.connect(
-      database = os.environ['DB_NAME'], 
-      user = os.environ['DB_USER'], 
-      password = os.environ['DB_PASS'], 
-      host = os.environ['DB_HOST'], 
-      port = os.environ['DB_PORT'],
-    )
-    conn.autocommit = True
-    sql_pick = '''
-      SELECT member, count(*) FROM "Pick" 
-      WHERE "Pick"."createdAt"> \'{START_TIME}\' AND "Pick".kind=\'read\' 
-      GROUP BY member ORDER BY count DESC
-      LIMIT {TAKE};
-    '''
-    sql_pick_string = sql_pick.format(START_TIME=start_time, TAKE=most_read_member_num)
-    try:
-        with conn.cursor() as cur:
-            cur.execute(sql_pick_string)
-            rows = cur.fetchall()
-            if len(rows)>0:
-              members = {row[0]: row[1] for row in rows}
-              sql_member = '''
-                SELECT id, name, nickname, email, avatar, "customId", is_active FROM "Member"
-                WHERE id IN %s;
-              '''
-              cur.execute(sql_member, (tuple(members.keys()),))
-              rows = cur.fetchall()
-              for row in rows:
-                id, name, nickname, email, avatar, customId, is_active = row
-                if is_active==False:
-                  continue
-                data.append({
-                    "id": id,
-                    "pickCount": members[id],
-                    "name": name,
-                    "nickname": nickname,
-                    "email": email,
-                    "avatar": avatar,
-                    "customId": customId
-                })
-              data = sorted(data, key=lambda member: member['pickCount'], reverse=True)
-    except Exception as error: 
-      print("Error while get_most_followers:", error)
-    finally:
-      conn.close()
+    start_time = start_time.isoformat()
     
-    # If the legnth of data is less than most_follower_num, add new member info
-    if len(data)<most_read_member_num:
-      ids = set([member['id'] for member in data])
-      members = gql_query(MESH_GQL_ENDPOINT, gql_member_info.format(TAKE=most_read_member_num))
-      additional_members = members['members']
-      for member in additional_members:
-        id = member['id']
-        if id not in ids:
-          data.append(member)
-        if len(data) >= most_read_member_num:
-          break
-        
-    # If the length of data is still empty, add dummy data
-    if len(data)==0:
-      data.append(config.DUMMY_MEMBER_INFO)
-    
-    ### upload data
-    filename = os.path.join('data', 'most_read_members.json')
-    save_file(filename, data)
-    upload_blob(filename)
+    members = gql_query(MESH_GQL_ENDPOINT, gql_member_read_statistic.format(START_TIME=start_time))
+    members = members['members']
+
+    # sorted by pickCount and upload
+    sorted_comments = sorted(members, key=lambda item: item['pickCount'], reverse=True)[:most_read_member_num]
+    if sorted_comments:
+      filename = os.path.join('data', 'most_read_members.json')
+      save_file(filename, sorted_comments)
+      upload_blob(filename)
     return True
   
 def most_read_story(all_stories: list):
