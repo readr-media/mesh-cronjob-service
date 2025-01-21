@@ -403,8 +403,11 @@ def hotpage_most_like_comments(days=config.HOTPAGE_MOST_LIKE_DAYS):
     
     ### save and upload json
     filename = os.path.join('data', f'hotpage_most_like_comments.json')
-    save_file(filename, sorted_most_like_comments)
-    upload_blob(filename)
+    if sorted_most_like_comments:
+      save_file(filename, sorted_most_like_comments)
+      upload_blob(filename)
+    else:
+      print("hotpage_most_like: empty data")
     
 def publisher_stories():
     gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
