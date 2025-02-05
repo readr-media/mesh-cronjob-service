@@ -126,6 +126,7 @@ query Publishers{
     logo
     followerCount
     description
+    createdAt
   }
 }
 '''
