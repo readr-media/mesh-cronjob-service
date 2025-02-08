@@ -12,6 +12,9 @@ regex==2023.10.3
 numpy==1.23.5
 requests_toolbelt==0.10.1
 google-cloud-storage==1.33.0
+google-cloud-bigquery==3.29.0
+google-analytics-data==0.18.12
 pytz==2023.3.post1
 pymongo==4.8.0
+openpyxl==3.0.10
 meilisearch

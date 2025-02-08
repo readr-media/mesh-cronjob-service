@@ -9,6 +9,7 @@ import copy
 from app.meilisearch import add_document
 from app.mongo import connect_db
 from app.tool import get_current_timestamp, gen_uuid
+import app.statement as statement
 
 def most_follower_members(most_follower_num: int):
     MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
@@ -577,4 +578,39 @@ def check_transaction():
                 {"_id": memberId},
                 {"$set": {"notifies": all_notifies}}
             )
+    return True
+  
+def financial_statements(DAYS: int=30):
+    PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
+    GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
+    revenue_table = statement.getRevenues(GA_RESOURCE_ID, DAYS)
+    
+    # get revenue of each page
+    homepage_revenue = revenue_table.get(statement.homepage_title, 0.0)
+    socialpage_revenue = revenue_table.get(statement.socialpage_title, 0.0)
+    newpage_revenue = revenue_table.get(statement.newpage_title, 0.0)
+    adsense_revenue = revenue_table.get('total', 0.0)
+    
+    mutual_fund = statement.calculateMutualFund(homepage_revenue, newpage_revenue)
+    mesh_income = statement.calculatePlatformIncome(homepage_revenue, newpage_revenue, socialpage_revenue, 0, 0)
+    
+    # pv_table
+    db_name = "mesh_userlogs_dev"
+    table_name = "mesh_next_userlog_dev_click"
+    current_time = datetime.datetime.now()
+    start_time = (current_time - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+
+    pv_table = statement.getPublisherPageview(db_name, table_name, start_time)
+    
+    # create statement
+    filename = statement.createMontlyStatement(
+        adsense_revenue = adsense_revenue,
+        gam_revenue = 100,
+        mesh_income = mesh_income,
+        mutual_fund = mutual_fund,
+        user_points = 100,
+        pv_table = pv_table,
+        gam_complementary = "此為測試資料"
+    )
+    upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True

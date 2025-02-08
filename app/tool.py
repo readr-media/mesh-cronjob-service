@@ -7,15 +7,15 @@ import uuid
 import datetime
 
 ### upload
-def upload_blob(dest_filename, cache_control: str = 'cache_control_short'):
+def upload_blob(dest_filename, bucket_name: str = os.environ['BUCKET'], cache_control: str = 'cache_control_short'):
     ### with service account attached to the service
     storage_client = storage.Client()
-    bucket = storage_client.bucket(os.environ['BUCKET'])
+    bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(dest_filename)
     blob.upload_from_filename(dest_filename)
     blob.cache_control = config.upload_configs[cache_control]
     blob.patch()
-    print(f'upload {dest_filename} to blob successfully')
+    print(f'upload {dest_filename} to blob {bucket_name} successfully')
     
 ### files operations
 def save_file(dest_filename, data):
