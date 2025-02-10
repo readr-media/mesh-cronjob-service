@@ -122,3 +122,8 @@ async def data_invalid_names():
 async def data_check_transactions():
   cronjob.check_transaction()
   return "ok"
+
+@app.post('/cronjob/financial_statements')
+async def data_financial_statements():
+  cronjob.financial_statements()
+  return "ok"

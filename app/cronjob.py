@@ -583,9 +583,11 @@ def check_transaction():
 def financial_statements(DAYS: int=30):
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
-    revenue_table = statement.getRevenues(GA_RESOURCE_ID, DAYS)
+    BIGQUERY_DB = os.environ['BIGQUERY_DB']
+    BIGQUERY_TABLE_CLICK = os.environ['BIGQUERY_TABLE_CLICK']
     
     # get revenue of each page
+    revenue_table = statement.getRevenues(GA_RESOURCE_ID, DAYS)
     homepage_revenue = revenue_table.get(statement.homepage_title, 0.0)
     socialpage_revenue = revenue_table.get(statement.socialpage_title, 0.0)
     newpage_revenue = revenue_table.get(statement.newpage_title, 0.0)
@@ -595,14 +597,12 @@ def financial_statements(DAYS: int=30):
     mesh_income = statement.calculatePlatformIncome(homepage_revenue, newpage_revenue, socialpage_revenue, 0, 0)
     
     # pv_table
-    db_name = "mesh_userlogs_dev"
-    table_name = "mesh_next_userlog_dev_click"
     current_time = datetime.datetime.now()
-    start_time = (current_time - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-
-    pv_table = statement.getPublisherPageview(db_name, table_name, start_time)
+    start_time = (current_time - timedelta(days=DAYS)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time)
     
     # create statement
+    # TODO: gam_revenue and user_points should get the real data after implemented
     filename = statement.createMontlyStatement(
         adsense_revenue = adsense_revenue,
         gam_revenue = 100,
