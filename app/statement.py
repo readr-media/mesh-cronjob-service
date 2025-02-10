@@ -164,7 +164,7 @@ def createMontlyStatement(adsense_revenue: float, gam_revenue: float, mesh_incom
     ws[f'A{point_start_row+1}'], ws[f'B{point_start_row+1}'], ws[f'C{point_start_row+1}'] = "項目", "點數(MSP)", "備註"
     ws[f'A{point_start_row+2}'], ws[f'B{point_start_row+2}'], ws[f'C{point_start_row+2}'] = "點數總合", user_points, point_complementary
 
-    folder = os.path.join(".", "statements", "general")
+    folder = os.path.join("statements", "general")
     filename = os.path.join(folder, f"monthly-statement-{date}.xlsx")
     if not os.path.exists(folder):
         os.makedirs(folder)
