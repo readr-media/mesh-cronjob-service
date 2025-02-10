@@ -18,15 +18,16 @@ from datetime import datetime, timedelta
 import math
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
+from dateutil.relativedelta import relativedelta
 
 homepage_title = "READr Mesh 讀選"
 newpage_title  = "最新 | READr Mesh 讀選"
 socialpage_title = "社群 | READr Mesh 讀選"
 
-def getRevenues(ga_resource_id, ga_days):
+def getRevenues(ga_resource_id, ga_months):
     # setup ga days
-    current_time = datetime.now()
-    start_datetime = (current_time - timedelta(days=ga_days)).replace(hour=0, minute=0, second=0, microsecond=0)
+    current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_datetime = current_time - relativedelta(months=ga_months)
     start_date = datetime.strftime(start_datetime, '%Y-%m-%d')
     
     # setup filter criteria

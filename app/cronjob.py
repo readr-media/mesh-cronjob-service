@@ -10,6 +10,7 @@ from app.meilisearch import add_document
 from app.mongo import connect_db
 from app.tool import get_current_timestamp, gen_uuid
 import app.statement as statement
+from dateutil.relativedelta import relativedelta
 
 def most_follower_members(most_follower_num: int):
     MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
@@ -580,14 +581,14 @@ def check_transaction():
             )
     return True
   
-def financial_statements(DAYS: int=30):
+def financial_statements(MONTHS: int=1):
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
     BIGQUERY_DB = os.environ['BIGQUERY_DB']
     BIGQUERY_TABLE_CLICK = os.environ['BIGQUERY_TABLE_CLICK']
     
     # get revenue of each page
-    revenue_table = statement.getRevenues(GA_RESOURCE_ID, DAYS)
+    revenue_table = statement.getRevenues(GA_RESOURCE_ID, MONTHS)
     homepage_revenue = revenue_table.get(statement.homepage_title, 0.0)
     socialpage_revenue = revenue_table.get(statement.socialpage_title, 0.0)
     newpage_revenue = revenue_table.get(statement.newpage_title, 0.0)
@@ -597,8 +598,8 @@ def financial_statements(DAYS: int=30):
     mesh_income = statement.calculatePlatformIncome(homepage_revenue, newpage_revenue, socialpage_revenue, 0, 0)
     
     # pv_table
-    current_time = datetime.now()
-    start_time = (current_time - timedelta(days=DAYS)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_time = (current_time - relativedelta(months=MONTHS)).isoformat()
     pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time)
     
     # create statement
