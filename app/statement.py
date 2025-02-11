@@ -32,6 +32,7 @@ gql_sponsorships = '''
     	publisher{{
           id
         }}
+        fee
       }}
     }}
 '''
@@ -148,12 +149,13 @@ def publisherSponsorshipShare(gql_endpoint, mutual_fund):
 
     # calculate statistic from sponsorships
     sponsor_table = {}
-    total_count = 0
+    total_fee = 0
     for sponsorship in sponsorships:
         publisher_id = sponsorship['publisher']['id']
-        sponsor_table[publisher_id] = sponsor_table.get(publisher_id, 0)+1
-        total_count += 1
-    publisher_share_table = { pid: (count/total_count)*mutual_fund for pid, count in sponsor_table.items() }
+        fee = sponsorship['fee']
+        sponsor_table[publisher_id] = sponsor_table.get(publisher_id, 0)+fee
+        total_fee += fee
+    publisher_share_table = { pid: (fee/total_fee)*mutual_fund for pid, fee in sponsor_table.items() }
     return publisher_share_table
 
 def createMontlyStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
