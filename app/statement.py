@@ -14,15 +14,36 @@ from google.analytics.data_v1beta.types import (
     FilterExpressionList
 )
 from google.cloud import bigquery as bq
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 import math
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
 from dateutil.relativedelta import relativedelta
+from app.gql import gql_query
 
 homepage_title = "READr Mesh 讀選"
 newpage_title  = "最新 | READr Mesh 讀選"
 socialpage_title = "社群 | READr Mesh 讀選"
+
+gql_sponsorships = '''
+    query sponsorships{{
+      sponsorships(where: {{status: {{equals: Success}}, createdAt: {{gt: "{START_TIME}" }} }}){{
+        id
+    	publisher{{
+          id
+        }}
+      }}
+    }}
+'''
+
+gql_statement_publishers = '''
+query Publishers{
+  publishers(where: {is_active: {equals: true}}){
+    id
+    title
+  }
+}
+'''
 
 def getRevenues(ga_resource_id, ga_months):
     # setup ga days
@@ -118,7 +139,24 @@ def calculatePlatformIncome(homepage_revenue: float, newpage_revenue: float, soc
     '''
     return (homepage_revenue+newpage_revenue+socialpage_revenue)*0.5+(collection_ad_revenue*0.5+story_ad_revenue*0.45)
 
-def createMontlyStatement(adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
+def publisherSponsorshipShare(gql_endpoint, mutual_fund):
+    # fetch data
+    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    start_datetime = (current_time - relativedelta(months=1)).isoformat().replace('+00:00', 'Z')
+    data = gql_query(gql_endpoint, gql_sponsorships.format(START_TIME=start_datetime))
+    sponsorships = data['sponsorships']
+
+    # calculate statistic from sponsorships
+    sponsor_table = {}
+    total_count = 0
+    for sponsorship in sponsorships:
+        publisher_id = sponsorship['publisher']['id']
+        sponsor_table[publisher_id] = sponsor_table.get(publisher_id, 0)+1
+        total_count += 1
+    publisher_share_table = { pid: (count/total_count)*mutual_fund for pid, count in sponsor_table.items() }
+    return publisher_share_table
+
+def createMontlyStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
     wb = Workbook()
     ws = wb.active
     current_time = datetime.now()
@@ -165,6 +203,26 @@ def createMontlyStatement(adsense_revenue: float, gam_revenue: float, mesh_incom
     ws[f'A{point_start_row+1}'], ws[f'B{point_start_row+1}'], ws[f'C{point_start_row+1}'] = "項目", "點數(MSP)", "備註"
     ws[f'A{point_start_row+2}'], ws[f'B{point_start_row+2}'], ws[f'C{point_start_row+2}'] = "點數總合", user_points, point_complementary
 
+    # for publisher shares
+    publisher_start_row = point_start_row+4
+    ws.merge_cells(f"A{publisher_start_row}:C{publisher_start_row}")
+    ws[f"A{publisher_start_row}"].fill = orange_fill
+    ws[f'A{publisher_start_row}'] = "媒體廣告分潤"
+    ws[f'A{publisher_start_row+1}'], ws[f'B{publisher_start_row+1}'], ws[f'C{publisher_start_row+1}'] = "媒體名稱", "共同基金池分潤(TWD)", "文章頁廣告分潤(TWD)"
+
+    data = gql_query(gql_endpoint, gql_statement_publishers)
+    publishers = data['publishers']
+    total_pv = sum(pv_table.values())
+    if total_pv==0:
+        total_pv = 1 # avoid divide by 0 issue
+    index = publisher_start_row+2
+    for idx, publisher in enumerate(publishers):
+        id, title = publisher['id'], publisher['title']
+        sponsorship_share = precision.format(publisher_share_table.get(str(id), 0.0))
+        pv_share = precision.format((pv_table.get(str(id), 0.0)/total_pv)*gam_revenue)
+        ws[f'A{index+idx}'], ws[f'B{index+idx}'], ws[f'C{index+idx}'] = title, sponsorship_share, pv_share
+    
+    # file
     folder = os.path.join("statements", "general")
     filename = os.path.join(folder, f"monthly-statement-{date}.xlsx")
     if not os.path.exists(folder):

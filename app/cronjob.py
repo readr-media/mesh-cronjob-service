@@ -582,6 +582,7 @@ def check_transaction():
     return True
   
 def financial_statements(MONTHS: int=1):
+    MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
     BIGQUERY_DB = os.environ['BIGQUERY_DB']
@@ -602,14 +603,19 @@ def financial_statements(MONTHS: int=1):
     start_time = (current_time - relativedelta(months=MONTHS)).isoformat()
     pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time)
     
+    # publisher share
+    publisher_share_table = statement.publisherSponsorshipShare(MESH_GQL_ENDPOINT, mutual_fund)
+    
     # create statement
     # TODO: gam_revenue and user_points should get the real data after implemented
     filename = statement.createMontlyStatement(
+        gql_endpoint = MESH_GQL_ENDPOINT,
         adsense_revenue = adsense_revenue,
         gam_revenue = 100,
         mesh_income = mesh_income,
         mutual_fund = mutual_fund,
         user_points = 100,
+        publisher_share_table = publisher_share_table,
         pv_table = pv_table,
         gam_complementary = "此為測試資料"
     )
