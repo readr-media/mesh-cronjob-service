@@ -1,6 +1,6 @@
 import psycopg2
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytz
 from app.tool import save_file, upload_blob, request_post
 from app.gql import *
@@ -581,7 +581,7 @@ def check_transaction():
             )
     return True
   
-def financial_statements(MONTHS: int=1):
+def month_statements(MONTHS: int=1):
     MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
@@ -608,7 +608,7 @@ def financial_statements(MONTHS: int=1):
     
     # create statement
     # TODO: gam_revenue and user_points should get the real data after implemented
-    filename = statement.createMontlyStatement(
+    filename = statement.createMonthStatement(
         gql_endpoint = MESH_GQL_ENDPOINT,
         adsense_revenue = adsense_revenue,
         gam_revenue = 100,
@@ -620,4 +620,22 @@ def financial_statements(MONTHS: int=1):
         gam_complementary = "此為測試資料"
     )
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
+    return True
+  
+def quarter_statements(months: int=4):
+    MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
+    PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
+    DOMAIN = os.environ['PRIVATE_BUCKET_DOMAIN']
+    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
+    end_date = current_time.isoformat().replace('+00:00', 'Z')
+    
+    filenames = statement.createQuarterStatements(
+        gql_endpoint = MESH_GQL_ENDPOINT,
+        domain = DOMAIN,
+        start_date = start_date,
+        end_date = end_date
+    )
+    for filename in filenames:
+        upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True

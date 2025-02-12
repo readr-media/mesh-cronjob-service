@@ -46,6 +46,14 @@ query Publishers{
 }
 '''
 
+gql_create_statements = '''
+mutation createStatements($data: [StatementCreateInput!]!){
+  createStatements(data: $data){
+    id
+  }
+}
+'''
+
 def getRevenues(ga_resource_id, ga_months):
     # setup ga days
     current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -158,7 +166,7 @@ def publisherSponsorshipShare(gql_endpoint, mutual_fund):
     publisher_share_table = { pid: (fee/total_fee)*mutual_fund for pid, fee in sponsor_table.items() }
     return publisher_share_table
 
-def createMontlyStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
+def createMonthStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
     wb = Workbook()
     ws = wb.active
     current_time = datetime.now()
@@ -231,3 +239,58 @@ def createMontlyStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue
         os.makedirs(folder)
     wb.save(filename)
     return filename
+
+def createQuarterStatements(gql_endpoint: str, domain: str, start_date: str, end_date: str):
+    wb = Workbook()
+    ws = wb.active
+    current_time = datetime.now()
+    date = current_time.strftime("%Y-%m-%d")
+    filenames = []
+
+    # style setting
+    ws.column_dimensions["A"].width = 40
+    ws.column_dimensions["B"].width = 50
+    ws.column_dimensions["C"].width = 30
+    ws.column_dimensions["D"].width = 30
+    ws.column_dimensions["E"].width = 30
+    ws.column_dimensions["F"].width = 30
+    precision = "{:.3f}"
+    data = gql_query(gql_endpoint, gql_statement_publishers)
+    publishers = data['publishers']
+    
+    # for time period
+    start_row = 1
+    ws.merge_cells(f"A{start_row}:F{start_row}")
+    ws[f'A{start_row}'] = f"報表區間: {start_date}-{end_date}"
+    ws[f'A{start_row+1}'], ws[f'B{start_row+1}'], ws[f'C{start_row+1}'] = "建立日期", "金流編號", "項目"
+    ws[f'D{start_row+1}'], ws[f'E{start_row+1}'], ws[f'F{start_row+1}'] = "收取金額", "手續費", "實際收取金額"
+    
+    # file processing
+    var_statements = {
+        "data": []
+    }
+    for publisher in publishers:
+        pid, customId, title = publisher['id'], publisher['customId'], publisher['title']
+        folder = os.path.join("statements", "media", customId)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        filename = os.path.join(folder, f"quarter-statement-{date}.xlsx")
+        filenames.append(filename)
+        wb.save(filename)
+
+        var_statements["data"].append({
+            "title": f"{title}每期媒體報表",
+            "type": "quarter",
+            "url": f"{domain}{filename}",
+            "publisher": {
+                "connect": {
+                    "id": pid
+                }
+            },
+            "start_date": start_date,
+            "end_date": end_date,
+        })
+        
+    # update CMS
+    gql_query(gql_endpoint, gql_create_statements, var_statements)
+    return filenames
