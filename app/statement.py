@@ -42,6 +42,7 @@ query Publishers{
   publishers(where: {is_active: {equals: true}}){
     id
     title
+    customId
   }
 }
 '''
