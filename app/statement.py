@@ -231,7 +231,6 @@ def createRevenuesData(gql_endpoint, shares_table: dict, start_date: str, end_da
             "start_date": start_date,
             "end_date": end_date
         })
-        print(f"pid: {pid}, sponsorship_share: {sponsorship_share}, and pv_share: {pv_share}")
     data = gql_query(gql_endpoint, gql_create_revenues, var_revenues)
     return data
 
@@ -307,7 +306,12 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
             "sponsorship_share": sponsorship_share,
             "pv_share": pv_share
         }
-    createRevenuesData(gql_endpoint, shares_table, start_date, end_date)
+    createRevenuesData(
+        gql_endpoint = gql_endpoint, 
+        shares_table = shares_table, 
+        start_date = start_date, 
+        end_date = end_date
+    )
     
     # file
     folder = os.path.join("statements", "general")

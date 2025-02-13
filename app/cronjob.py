@@ -599,7 +599,7 @@ def month_statements(MONTHS: int=1):
     mesh_income = statement.calculatePlatformIncome(homepage_revenue, newpage_revenue, socialpage_revenue, 0, 0)
     
     # pv_table
-    current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     start_time = (current_time - relativedelta(months=MONTHS)).isoformat()
     pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time)
     
