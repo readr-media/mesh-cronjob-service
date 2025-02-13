@@ -343,7 +343,7 @@ def createQuarterStatements(gql_endpoint: str, domain: str, start_date: str, end
     revenues = data['revenues']
     revenue_table = {}
     for revenue in revenues:
-        pid = exchange['publisher']['id']
+        pid = revenue['publisher']['id']
         revenue_list = revenue_table.setdefault(pid, [])
         revenue_list.append(revenue)
     
