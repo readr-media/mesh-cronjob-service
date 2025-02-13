@@ -55,6 +55,14 @@ mutation createStatements($data: [StatementCreateInput!]!){
 }
 '''
 
+gql_create_revenues = '''
+mutation createRevenues($data: [RevenueCreateInput!]!){
+  createRevenues(data: $data){
+    id
+  }
+}
+'''
+
 gql_query_exchanges = '''
 query exchanges{{
   exchanges(where: {{createdAt: {{gte: "{START_DATE}" }}, status: {{equals: Success}} }}, orderBy: {{id: desc}}){{
@@ -193,7 +201,41 @@ def publisherSponsorshipShare(gql_endpoint, mutual_fund):
     publisher_share_table = { pid: (fee/total_fee)*mutual_fund for pid, fee in sponsor_table.items() }
     return publisher_share_table
 
-def createMonthStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
+def createRevenuesData(gql_endpoint, shares_table: dict, start_date: str, end_date: str):
+    var_revenues = {
+        "data": []
+    }
+    for pid, data in shares_table.items():
+        title, sponsorship_share, pv_share = data['title'], data['sponsorship_share'], data['pv_share']
+        var_revenues["data"].append({
+            "publisher": {
+                "connect": {
+                    "id": pid
+                }
+            },
+            "title": f"{title}基金池分潤",
+            "type": "mutual_fund_revenue",
+            "value": sponsorship_share,
+            "start_date": start_date,
+            "end_date": end_date
+        })
+        var_revenues["data"].append({
+            "publisher": {
+                "connect": {
+                    "id": pid
+                }
+            },
+            "title": f"{title}廣告分潤",
+            "type": "story_ad_revenue",
+            "value": pv_share,
+            "start_date": start_date,
+            "end_date": end_date
+        })
+        print(f"pid: {pid}, sponsorship_share: {sponsorship_share}, and pv_share: {pv_share}")
+    data = gql_query(gql_endpoint, gql_create_revenues, var_revenues)
+    return data
+
+def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
     wb = Workbook()
     ws = wb.active
     current_time = datetime.now()
@@ -253,11 +295,19 @@ def createMonthStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue:
     if total_pv==0:
         total_pv = 1 # avoid divide by 0 issue
     index = publisher_start_row+2
+    
+    shares_table = {}
     for idx, publisher in enumerate(publishers):
         id, title = publisher['id'], publisher['title']
-        sponsorship_share = precision.format(publisher_share_table.get(str(id), 0.0))
-        pv_share = precision.format((pv_table.get(str(id), 0.0)/total_pv)*gam_revenue)
-        ws[f'A{index+idx}'], ws[f'B{index+idx}'], ws[f'C{index+idx}'] = title, sponsorship_share, pv_share
+        sponsorship_share = publisher_share_table.get(str(id), 0.0)
+        pv_share = (pv_table.get(str(id), 0.0)/total_pv)*gam_revenue
+        ws[f'A{index+idx}'], ws[f'B{index+idx}'], ws[f'C{index+idx}'] = title, precision.format(sponsorship_share), precision.format(pv_share)
+        shares_table[id] = {
+            "title": title,
+            "sponsorship_share": sponsorship_share,
+            "pv_share": pv_share
+        }
+    createRevenuesData(gql_endpoint, shares_table, start_date, end_date)
     
     # file
     folder = os.path.join("statements", "general")

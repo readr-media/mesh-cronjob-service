@@ -608,7 +608,12 @@ def month_statements(MONTHS: int=1):
     
     # create statement
     # TODO: gam_revenue and user_points should get the real data after implemented
+    start_date = (current_time - relativedelta(months=MONTHS)).isoformat().replace('+00:00', 'Z')
+    end_date = current_time.isoformat().replace('+00:00', 'Z')
+    
     filename = statement.createMonthStatement(
+        start_date=start_date,
+        end_date=end_date,
         gql_endpoint = MESH_GQL_ENDPOINT,
         adsense_revenue = adsense_revenue,
         gam_revenue = 100,
