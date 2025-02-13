@@ -55,6 +55,32 @@ mutation createStatements($data: [StatementCreateInput!]!){
 }
 '''
 
+gql_query_exchanges = '''
+query exchanges{{
+  exchanges(where: {{createdAt: {{gte: "{START_DATE}" }}, status: {{equals: Success}} }}, orderBy: {{id: desc}}){{
+    publisher{{
+      id
+    }}
+    tid
+    exchangeVolume
+    createdAt
+  }}
+}}
+'''
+
+gql_query_revenues = '''
+query revenues{{
+  revenues(where: {{createdAt: {{gte: "{START_DATE}" }}, type: {{in: [story_ad_revenue]}} }}, orderBy: {{id: desc}}){{
+    publisher{{
+      id
+    }}
+    type
+    value
+    start_date
+  }}
+}}
+'''
+
 def getRevenues(ga_resource_id, ga_months):
     # setup ga days
     current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -241,32 +267,33 @@ def createMonthStatement(gql_endpoint: str, adsense_revenue: float, gam_revenue:
     wb.save(filename)
     return filename
 
-def createQuarterStatements(gql_endpoint: str, domain: str, start_date: str, end_date: str):
-    wb = Workbook()
-    ws = wb.active
-    current_time = datetime.now()
+
+def createQuarterStatements(gql_endpoint: str, domain: str, start_date: str, end_date: str, charge_percent: float=0.1):
+    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     date = current_time.strftime("%Y-%m-%d")
     filenames = []
-
-    # style setting
-    ws.column_dimensions["A"].width = 40
-    ws.column_dimensions["B"].width = 50
-    ws.column_dimensions["C"].width = 30
-    ws.column_dimensions["D"].width = 30
-    ws.column_dimensions["E"].width = 30
-    ws.column_dimensions["F"].width = 30
-    precision = "{:.3f}"
+    
+    # prefetching the necessary data
     data = gql_query(gql_endpoint, gql_statement_publishers)
     publishers = data['publishers']
     
-    # for time period
-    start_row = 1
-    ws.merge_cells(f"A{start_row}:F{start_row}")
-    ws[f'A{start_row}'] = f"報表區間: {start_date}-{end_date}"
-    ws[f'A{start_row+1}'], ws[f'B{start_row+1}'], ws[f'C{start_row+1}'] = "建立日期", "金流編號", "項目"
-    ws[f'D{start_row+1}'], ws[f'E{start_row+1}'], ws[f'F{start_row+1}'] = "收取金額", "手續費", "實際收取金額"
+    data = gql_query(gql_endpoint, gql_query_exchanges.format(START_DATE=start_date))
+    exchanges = data['exchanges']
+    exchange_table = {} # mapping publisher_id to exchange records
+    for exchange in exchanges:
+        pid = exchange['publisher']['id']
+        exchange_list = exchange_table.setdefault(pid, [])
+        exchange_list.append(exchange)
+
+    data = gql_query(gql_endpoint, gql_query_revenues.format(START_DATE=start_date))
+    revenues = data['revenues']
+    revenue_table = {}
+    for revenue in revenues:
+        pid = exchange['publisher']['id']
+        revenue_list = revenue_table.setdefault(pid, [])
+        revenue_list.append(revenue)
     
-    # file processing
+    # data processing
     var_statements = {
         "data": []
     }
@@ -276,9 +303,53 @@ def createQuarterStatements(gql_endpoint: str, domain: str, start_date: str, end
         if not os.path.exists(folder):
             os.makedirs(folder)
         filename = os.path.join(folder, f"quarter-statement-{date}.xlsx")
-        filenames.append(filename)
+        
+        # excel: global setting
+        wb = Workbook()
+        ws = wb.active
+        ws.column_dimensions["A"].width = 40
+        ws.column_dimensions["B"].width = 70
+        ws.column_dimensions["C"].width = 20
+        ws.column_dimensions["D"].width = 20
+        ws.column_dimensions["E"].width = 20
+        ws.column_dimensions["F"].width = 20
+        
+        # excel: title
+        start_row = 1
+        ws.merge_cells(f"A{start_row}:F{start_row}")
+        ws[f'A{start_row}'] = f"報表區間: {start_date}-{end_date}"
+        ws[f'A{start_row+1}'], ws[f'B{start_row+1}'], ws[f'C{start_row+1}'] = "建立日期", "金流編號", "項目"
+        ws[f'D{start_row+1}'], ws[f'E{start_row+1}'], ws[f'F{start_row+1}'] = "收取金額", "手續費", "實際收取金額"
+        
+        # excel: add exchanges information
+        item_row = start_row+2 
+        publisher_exchanges = exchange_table.get(pid, [])
+        for exchange in publisher_exchanges:
+            tid = exchange['tid']
+            exchangeVolume = exchange['exchangeVolume']
+            charge = math.ceil(exchangeVolume*charge_percent)
+            createdAt = exchange['createdAt']
+            ws[f'A{item_row}'], ws[f'B{item_row}'], ws[f'C{item_row}'] = createdAt, tid, "點數兌換"
+            ws[f'D{item_row}'], ws[f'E{item_row}'], ws[f'F{item_row}'] = exchangeVolume, charge, (exchangeVolume-charge)
+            item_row += 1
+        publisher_revenues = revenue_table.get(pid, [])
+        for revenue in publisher_revenues:
+            type_name = revenue['type']
+            if type_name != "story_ad_revenue":
+                continue
+            type_name = "廣告收益"
+            start_date = revenue['start_date']
+            month = datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%m')
+            item_name = f"{month}月{type_name}"
+            value = revenue['value']
+            charge = math.ceil(value*charge_percent)
+            ws[f'A{item_row}'], ws[f'B{item_row}'], ws[f'C{item_row}'] = start_date, "", item_name
+            ws[f'D{item_row}'], ws[f'E{item_row}'], ws[f'F{item_row}'] = value, charge, (value-charge)
+            item_row += 1
+            
+        # file processing
         wb.save(filename)
-
+        filenames.append(filename)
         var_statements["data"].append({
             "title": f"{title}每期媒體報表",
             "type": "quarter",
