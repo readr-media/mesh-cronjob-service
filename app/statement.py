@@ -322,7 +322,7 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
     return filename
 
 
-def createQuarterStatements(gql_endpoint: str, domain: str, start_date: str, end_date: str, charge_percent: float=0.1):
+def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_date: str, charge_percent: float=0.1):
     current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     date = current_time.strftime("%Y-%m-%d")
     filenames = []

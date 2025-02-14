@@ -627,7 +627,7 @@ def month_statements(MONTHS: int=1):
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
   
-def quarter_statements(months: int=4):
+def media_statements(months: int=2):
     MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     DOMAIN = os.environ['PRIVATE_BUCKET_DOMAIN']
@@ -635,7 +635,12 @@ def quarter_statements(months: int=4):
     start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
     end_date = current_time.isoformat().replace('+00:00', 'Z')
     
-    filenames = statement.createQuarterStatements(
+    # check the month, quater statements can only process in odd-numbered months
+    current_month = current_time.month
+    if current_month%2!=1:
+        return False
+    
+    filenames = statement.createMediaStatements(
         gql_endpoint = MESH_GQL_ENDPOINT,
         domain = DOMAIN,
         start_date = start_date,

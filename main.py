@@ -128,7 +128,7 @@ async def data_month_statements():
   cronjob.month_statements()
   return "ok"
 
-@app.post('/cronjob/quarter_statements')
-async def data_quarter_statements():
-  cronjob.quarter_statements()
+@app.post('/cronjob/media_statements')
+async def data_media_statements():
+  cronjob.media_statements()
   return "ok"
