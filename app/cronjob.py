@@ -581,7 +581,7 @@ def check_transaction():
             )
     return True
   
-def month_statements(MONTHS: int=1):
+def month_statements(months: int=1):
     MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
@@ -589,7 +589,7 @@ def month_statements(MONTHS: int=1):
     BIGQUERY_TABLE_CLICK = os.environ['BIGQUERY_TABLE_CLICK']
     
     # get revenue of each page
-    revenue_table = statement.getRevenues(GA_RESOURCE_ID, MONTHS)
+    revenue_table = statement.getRevenues(GA_RESOURCE_ID, months)
     homepage_revenue = revenue_table.get(statement.homepage_title, 0.0)
     socialpage_revenue = revenue_table.get(statement.socialpage_title, 0.0)
     newpage_revenue = revenue_table.get(statement.newpage_title, 0.0)
@@ -598,9 +598,12 @@ def month_statements(MONTHS: int=1):
     mutual_fund = statement.calculateMutualFund(homepage_revenue, newpage_revenue)
     mesh_income = statement.calculatePlatformIncome(homepage_revenue, newpage_revenue, socialpage_revenue, 0, 0)
     
+    # user points
+    user_points = statement.getTotalPoints(MESH_GQL_ENDPOINT)
+    
     # pv_table
     current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    start_time = (current_time - relativedelta(months=MONTHS)).isoformat()
+    start_time = (current_time - relativedelta(months=months)).isoformat()
     pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time)
     
     # publisher share
@@ -608,7 +611,7 @@ def month_statements(MONTHS: int=1):
     
     # create statement
     # TODO: gam_revenue and user_points should get the real data after implemented
-    start_date = (current_time - relativedelta(months=MONTHS)).isoformat().replace('+00:00', 'Z')
+    start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
     end_date = current_time.isoformat().replace('+00:00', 'Z')
     
     filename = statement.createMonthStatement(
@@ -619,7 +622,7 @@ def month_statements(MONTHS: int=1):
         gam_revenue = 100,
         mesh_income = mesh_income,
         mutual_fund = mutual_fund,
-        user_points = 100,
+        user_points = user_points,
         publisher_share_table = publisher_share_table,
         pv_table = pv_table,
         gam_complementary = "此為測試資料"

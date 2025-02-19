@@ -94,7 +94,6 @@ query members{
   members(where: {wallet: {not: {equals: ""}}}){
     id
     name
-    customId
     balance
   }
 }
@@ -272,6 +271,10 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
     
     # for all the profit
     start_row = 1
+    ws.merge_cells(f"A{start_row}:C{start_row}")
+    ws[f'A{start_row}'] = f"報表區間: {start_date}-{end_date}"
+    
+    start_row = 2
     ws.merge_cells(f"A{start_row}:C{start_row}")
     ws[f"A{start_row}"].fill = orange_fill
     ws[f'A{start_row}'] = "收益總覽"
@@ -506,3 +509,12 @@ def semiAnnualStatement(gql_endpoint: str, months: int=6):
     wb.save(filename)
     print("Successfully save statement: ", filename)
     return filename
+
+def getTotalPoints(gql_endpoint):
+    data = gql_query(gql_endpoint, gql_members_balance)
+    members = data['members']
+    total_points = 0
+    for member in members:
+        total_points += member.get('balance', 0)
+    return total_points
+    
