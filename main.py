@@ -132,3 +132,8 @@ async def data_month_statements():
 async def data_media_statements():
   cronjob.media_statements()
   return "ok"
+
+@app.post('/cronjob/semi_annual_statements')
+async def data_semi_annual_statements():
+  cronjob.semi_annual_statement()
+  return "ok"
