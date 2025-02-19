@@ -89,6 +89,29 @@ query revenues{{
 }}
 '''
 
+gql_members_balance = """
+query members{
+  members(where: {wallet: {not: {equals: ""}}}){
+    id
+    name
+    customId
+    balance
+  }
+}
+"""
+
+gql_publishers_balance = """
+query publishers{
+  publishers(where: {is_active: {equals: true}}){
+    id
+    title
+    admin{
+      balance
+    }
+  }
+}
+"""
+
 def getRevenues(ga_resource_id, ga_months):
     # setup ga days
     current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -420,3 +443,66 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
     # update CMS
     gql_query(gql_endpoint, gql_create_statements, var_statements)
     return filenames
+
+def semiAnnualStatement(gql_endpoint: str, months: int=6):
+    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    date = current_time.strftime("%Y-%m-%d")
+
+    # prefetching the necessary data
+    data = gql_query(gql_endpoint, gql_members_balance)
+    members = data['members']
+    data = gql_query(gql_endpoint, gql_publishers_balance)
+    publishers = data['publishers']
+
+    # excel design
+    folder = os.path.join("statements", "general")
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    filename = os.path.join(folder, f"half-year-statement-{date}.xlsx")
+    
+    start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
+    end_date = current_time.isoformat().replace('+00:00', 'Z')
+    
+    # excel: global setting
+    wb = Workbook()
+    ws = wb.active
+    ws.column_dimensions["A"].width = 30
+    ws.column_dimensions["B"].width = 30
+    ws.column_dimensions["C"].width = 40
+    orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
+
+    # excel: publisher balances
+    start_row = 1
+    ws.merge_cells(f"A{start_row}:C{start_row}")
+    ws[f'A{start_row}'] = f"報表區間: {start_date}-{end_date}"
+    start_row += 1
+    ws.merge_cells(f"A{start_row}:C{start_row}")
+    ws[f'A{start_row}'].fill = orange_fill
+    ws[f'A{start_row}'] = f"媒體點數"
+    start_row += 1
+    ws[f'A{start_row}'], ws[f'B{start_row}'], ws[f'C{start_row}'] = "名稱", "點數", "備註"
+
+    for publisher in publishers:
+        start_row += 1
+        title = publisher['title']
+        balance = publisher['admin']['balance'] if publisher['admin'] else 0
+        ws[f'A{start_row}'], ws[f'B{start_row}'], ws[f'C{start_row}'] = title, balance, ""
+
+    # excel: member balances
+    start_row += 3
+    ws.merge_cells(f"A{start_row}:C{start_row}")
+    ws[f'A{start_row}'].fill = orange_fill
+    ws[f'A{start_row}'] = f"用戶點數"
+    start_row += 1
+    ws[f'A{start_row}'], ws[f'B{start_row}'], ws[f'C{start_row}'] = "名稱", "點數", "備註"
+
+    for member in members:
+        start_row += 1
+        name = member['name']
+        balance = member['balance']
+        ws[f'A{start_row}'], ws[f'B{start_row}'], ws[f'C{start_row}'] = name, balance, ""
+
+    # save file
+    wb.save(filename)
+    print("Successfully save statement: ", filename)
+    return filename

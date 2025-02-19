@@ -649,3 +649,10 @@ def media_statements(months: int=2):
     for filename in filenames:
         upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
+  
+def semi_annual_statement(months: int=6):
+    MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
+    PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
+    filename = statement.semiAnnualStatement(MESH_GQL_ENDPOINT)
+    upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
+    return True
