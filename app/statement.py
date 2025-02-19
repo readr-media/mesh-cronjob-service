@@ -458,7 +458,7 @@ def semiAnnualStatement(gql_endpoint: str, months: int=6):
     folder = os.path.join("statements", "general")
     if not os.path.exists(folder):
         os.makedirs(folder)
-    filename = os.path.join(folder, f"half-year-statement-{date}.xlsx")
+    filename = os.path.join(folder, f"semi-annual-statement-{date}.xlsx")
     
     start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
     end_date = current_time.isoformat().replace('+00:00', 'Z')
