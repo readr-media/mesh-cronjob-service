@@ -634,14 +634,16 @@ def media_statements(months: int=2):
     MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     DOMAIN = os.environ['PRIVATE_BUCKET_DOMAIN']
+    ENV = os.environ.get('ENV', 'dev')
     current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
     end_date = current_time.isoformat().replace('+00:00', 'Z')
     
     # check the month, quater statements can only process in odd-numbered months
-    current_month = current_time.month
-    if current_month%2!=1:
-        return False
+    if ENV!='dev':
+        current_month = current_time.month
+        if current_month%2!=1:
+            return False
     
     filenames = statement.createMediaStatements(
         gql_endpoint = MESH_GQL_ENDPOINT,
@@ -656,6 +658,15 @@ def media_statements(months: int=2):
 def semi_annual_statement():
     MESH_GQL_ENDPOINT = os.environ["MESH_GQL_ENDPOINT"]
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
+    ENV = os.environ.get('ENV', 'dev')
+    
+    # check the month
+    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    if ENV!='dev':
+        current_month = current_time.month
+        if current_month!=1 or current_month!=7:
+            return False
+    
     filename = statement.semiAnnualStatement(MESH_GQL_ENDPOINT)
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
