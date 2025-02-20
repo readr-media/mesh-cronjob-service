@@ -95,6 +95,10 @@ query members{
     id
     name
     balance
+    publisher{
+      id
+      title
+    }
   }
 }
 """
@@ -503,7 +507,15 @@ def semiAnnualStatement(gql_endpoint: str, months: int=6):
         start_row += 1
         name = member['name']
         balance = member['balance']
-        ws[f'A{start_row}'], ws[f'B{start_row}'], ws[f'C{start_row}'] = name, balance, ""
+        
+        note = ""
+        manage_publishers = member['publisher']
+        if len(manage_publishers)>0:
+            note = "用戶下列媒體之管理員: "
+            for publisher in manage_publishers:
+                title = publisher['title']
+                note += f"{title}, "
+        ws[f'A{start_row}'], ws[f'B{start_row}'], ws[f'C{start_row}'] = name, balance, note
 
     # save file
     wb.save(filename)
