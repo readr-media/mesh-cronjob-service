@@ -354,7 +354,7 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
 
 def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_date: str, charge_percent: float=0.1):
     current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    date = current_time.strftime("%Y-%m-%d")
+    date = current_time.strftime("%Y%m%d")
     filenames = []
     
     # prefetching the necessary data
@@ -386,7 +386,7 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
         folder = os.path.join("statements", "media", customId)
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filename = os.path.join(folder, f"quarter-statement-{date}.xlsx")
+        filename = os.path.join(folder, f"{customId}_{date}.xlsx")
         
         # excel: global setting
         wb = Workbook()
@@ -435,7 +435,7 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
         wb.save(filename)
         filenames.append(filename)
         var_statements["data"].append({
-            "title": f"{title}每期媒體報表",
+            "title": f"{customId}_{date}",
             "type": "quarter",
             "url": f"{domain}{filename}",
             "publisher": {
