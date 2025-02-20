@@ -475,7 +475,7 @@ def semiAnnualStatement(gql_endpoint: str, months: int=6):
     ws = wb.active
     ws.column_dimensions["A"].width = 30
     ws.column_dimensions["B"].width = 30
-    ws.column_dimensions["C"].width = 40
+    ws.column_dimensions["C"].width = 50
     orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
 
     # excel: publisher balances
@@ -511,7 +511,7 @@ def semiAnnualStatement(gql_endpoint: str, months: int=6):
         note = ""
         manage_publishers = member['publisher']
         if len(manage_publishers)>0:
-            note = "用戶下列媒體之管理員: "
+            note = "為媒體管理員: "
             for publisher in manage_publishers:
                 title = publisher['title']
                 note += f"{title}, "
