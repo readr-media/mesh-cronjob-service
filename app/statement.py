@@ -20,10 +20,16 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill
 from dateutil.relativedelta import relativedelta
 from app.gql import gql_query
+from google.ads import admanager_v1
 
-homepage_title = "READr Mesh 讀選"
-newpage_title  = "最新 | READr Mesh 讀選"
-socialpage_title = "社群 | READr Mesh 讀選"
+GAM_REVENUE_PARTIAL = 0.85 # How much of the revenue goes to publisher's revenue
+
+adsense_homepage_title = "READr Mesh 讀選"
+adsense_newpage_title  = "最新 | READr Mesh 讀選"
+adsense_socialpage_title = "社群 | READr Mesh 讀選"
+gam_social_title = "social"
+gam_article_title = "article"
+gam_profile_title = "profile"
 
 gql_sponsorships = '''
     query sponsorships{{
@@ -43,6 +49,7 @@ query Publishers{
     id
     title
     customId
+    full_content
   }
 }
 '''
@@ -115,7 +122,7 @@ query publishers{
 }
 """
 
-def getRevenues(ga_resource_id, ga_months):
+def getAdsenseRevenues(ga_resource_id, ga_months):
     # setup ga days
     current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_datetime = current_time - relativedelta(months=ga_months)
@@ -130,7 +137,7 @@ def getRevenues(ga_resource_id, ga_months):
                         field_name="pageTitle",
                         string_filter=Filter.StringFilter(
                             match_type=Filter.StringFilter.MatchType.EXACT,
-                            value=homepage_title
+                            value=adsense_homepage_title
                         )
                     )
                 ),
@@ -139,7 +146,7 @@ def getRevenues(ga_resource_id, ga_months):
                         field_name="pageTitle",
                         string_filter=Filter.StringFilter(
                             match_type=Filter.StringFilter.MatchType.EXACT,
-                            value=newpage_title
+                            value=adsense_newpage_title
                         )
                     )
                 ),
@@ -148,7 +155,7 @@ def getRevenues(ga_resource_id, ga_months):
                         field_name="pageTitle",
                         string_filter=Filter.StringFilter(
                             match_type=Filter.StringFilter.MatchType.EXACT,
-                            value=socialpage_title
+                            value=adsense_socialpage_title
                         )
                     )
                 )
@@ -203,11 +210,12 @@ def calculateMutualFund(homepage_revenue: float, newpage_revenue: float):
     '''
     return homepage_revenue*0.2+newpage_revenue*0.05
 
-def calculatePlatformIncome(homepage_revenue: float, newpage_revenue: float, socialpage_revenue: float, collection_ad_revenue: float, story_ad_revenue: float):
+def calculatePlatformIncome(homepage_revenue: float, homesubpage_revenue: float, newpage_revenue: float, socialpage_revenue: float, collection_ad_revenue: float, article_ad_revenue: float):
     '''
-        平台收益 = (首頁廣告收益0.5+最新廣告收益0.5+社群廣告收益0.5)+(集錦廣告收益0.5+文章廣告收益*0.45)
+        平台收益 = (首頁收益+首頁子頁收益)*0.5 + 最新頁面收益*0.5 + 社群頁面收益*0.85*0.5 + 集錦廣告收益*0.85*0.5 + 文章廣告收益*0.85*0.45
     '''
-    return (homepage_revenue+newpage_revenue+socialpage_revenue)*0.5+(collection_ad_revenue*0.5+story_ad_revenue*0.45)
+    total_revenue = (homepage_revenue+homesubpage_revenue)*0.5 + newpage_revenue*0.5 + socialpage_revenue*0.85*0.5 + collection_ad_revenue*0.85*0.5 + article_ad_revenue*0.85*0.45
+    return total_revenue
 
 def publisherSponsorshipShare(gql_endpoint, mutual_fund):
     # fetch data
@@ -260,7 +268,7 @@ def createRevenuesData(gql_endpoint, shares_table: dict, start_date: str, end_da
     data = gql_query(gql_endpoint, gql_create_revenues, var_revenues)
     return data
 
-def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adsense_revenue: float, gam_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
+def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adsense_total_revenue: float, gam_total_revenue: float, gam_article_revenue: float, mesh_income: float, mutual_fund: float, user_points: int, publisher_share_table: dict, pv_table, adsense_complementary: str="", gam_complementary: str="", point_complementary: str=""):
     wb = Workbook()
     ws = wb.active
     current_time = datetime.now()
@@ -283,9 +291,9 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
     ws[f"A{start_row}"].fill = orange_fill
     ws[f'A{start_row}'] = "收益總覽"
     ws[f'A{start_row+1}'], ws[f'B{start_row+1}'], ws[f'C{start_row+1}'] = "項目", "金額(TWD)", "備註"
-    ws[f'A{start_row+2}'], ws[f'B{start_row+2}'], ws[f'C{start_row+2}'] = "Adsense收益", precision.format(adsense_revenue), adsense_complementary
-    ws[f'A{start_row+3}'], ws[f'B{start_row+3}'], ws[f'C{start_row+3}'] = "GAM收益", precision.format(gam_revenue), gam_complementary
-    ws[f'A{start_row+4}'], ws[f'B{start_row+4}'] = "總收益", precision.format(adsense_revenue + gam_revenue)
+    ws[f'A{start_row+2}'], ws[f'B{start_row+2}'], ws[f'C{start_row+2}'] = "Adsense收益", precision.format(adsense_total_revenue), adsense_complementary
+    ws[f'A{start_row+3}'], ws[f'B{start_row+3}'], ws[f'C{start_row+3}'] = "GAM收益", precision.format(gam_total_revenue), gam_complementary
+    ws[f'A{start_row+4}'], ws[f'B{start_row+4}'] = "總收益", precision.format(adsense_total_revenue + gam_total_revenue)
 
     # for income
     income_start_row = start_row+6
@@ -327,9 +335,9 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
     
     shares_table = {}
     for idx, publisher in enumerate(publishers):
-        id, title = publisher['id'], publisher['title']
+        id, title, full_content = publisher['id'], publisher['title'], publisher['full_content']
         sponsorship_share = publisher_share_table.get(str(id), 0.0)
-        pv_share = (pv_table.get(str(id), 0.0)/total_pv)*gam_revenue
+        pv_share = (pv_table.get(str(id), 0.0)/total_pv)*gam_article_revenue*GAM_REVENUE_PARTIAL if full_content==True else 0
         ws[f'A{index+idx}'], ws[f'B{index+idx}'], ws[f'C{index+idx}'] = title, precision.format(sponsorship_share), precision.format(pv_share)
         shares_table[id] = {
             "title": title,
@@ -529,4 +537,53 @@ def getTotalPoints(gql_endpoint):
     for member in members:
         total_points += member.get('balance', 0)
     return total_points
+
+# GAM revenue related functions
+def getGamRevenues(network_code):
+    # Create report
+    revenue_table = {
+        gam_social_title: 0.0,
+        gam_article_title: 0.0,
+        gam_profile_title: 0.0,
+    }
+    client = admanager_v1.ReportServiceClient()
+
+    report = admanager_v1.Report(display_name="TEST")
+    report.report_definition.dimensions = ['AD_UNIT_CODE']
+    report.report_definition.metrics = ['ADSENSE_REVENUE']
+    report.report_definition.report_type = "HISTORICAL"
+    report.report_definition.date_range = admanager_v1.types.Report.DateRange(relative="LAST_30_DAYS")
+
+    request = admanager_v1.CreateReportRequest(
+        parent=f"networks/{network_code}",
+        report=report,
+    )
+    response = client.create_report(request=request)
     
+    # Run report
+    report_id = response.report_id
+    request = admanager_v1.RunReportRequest(
+        name=f"networks/{network_code}/reports/{report_id}",
+    )
+    operation = client.run_report(request=request)
+    print("Waiting for operation to complete...")
+    response = operation.result()
+
+    # Fetch report result
+    report_result = response.report_result
+    request = admanager_v1.FetchReportResultRowsRequest(
+        name=report_result
+    )
+    revenues = client.fetch_report_result_rows(request=request)
+    for revenue in revenues:
+        ad_name = revenue.dimension_values[0].string_value
+        dollor  = revenue.metric_value_groups[0].primary_values[0].double_value
+        total += dollor
+        if "mmesh_social" in ad_name:
+            revenue_table[gam_social_title] += dollor
+        if "mmesh_profile" in ad_name:
+            revenue_table[gam_profile_title] += dollor
+        if "mmesh_article" in ad_name:
+            revenue_table[gam_article_title] += dollor
+    revenue_table['total'] = sum(revenue_table.values())
+    return revenue_table

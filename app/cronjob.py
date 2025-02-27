@@ -587,16 +587,32 @@ def month_statements(months: int=1):
     GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
     BIGQUERY_DB = os.environ['BIGQUERY_DB']
     BIGQUERY_TABLE_CLICK = os.environ['BIGQUERY_TABLE_CLICK']
+    GAM_NETWORK_ID = os.environ['GAM_NETWORK_ID']
     
     # get revenue of each page
-    revenue_table = statement.getRevenues(GA_RESOURCE_ID, months)
-    homepage_revenue = revenue_table.get(statement.homepage_title, 0.0)
-    socialpage_revenue = revenue_table.get(statement.socialpage_title, 0.0)
-    newpage_revenue = revenue_table.get(statement.newpage_title, 0.0)
-    adsense_revenue = revenue_table.get('total', 0.0)
+    adsense_revenue_table = statement.getAdsenseRevenues(GA_RESOURCE_ID, months)
+    gam_revenue_table = statement.getGamRevenues(GAM_NETWORK_ID)
     
-    mutual_fund = statement.calculateMutualFund(homepage_revenue, newpage_revenue)
-    mesh_income = statement.calculatePlatformIncome(homepage_revenue, newpage_revenue, socialpage_revenue, 0, 0)
+    adsense_homepage_revenue = adsense_revenue_table.get(statement.adsense_homepage_title, 0.0)
+    adsense_socialpage_revenue = adsense_revenue_table.get(statement.adsense_socialpage_title, 0.0)
+    adsense_newpage_revenue = adsense_revenue_table.get(statement.adsense_newpage_title, 0.0)
+    
+    gam_social_revenue  = gam_revenue_table.get(statement.gam_social_title, 0.0)
+    gam_article_revenue = gam_revenue_table.get(statement.gam_article_title, 0.0)
+    gam_profile_revenue = gam_revenue_table.get(statement.gam_profile_title, 0.0)
+    
+    adsense_total_revenue  = adsense_revenue_table.get('total', 0.0)
+    gam_total_revenues     = gam_revenue_table.get('total', 0.0)
+    
+    mutual_fund = statement.calculateMutualFund(adsense_homepage_revenue, adsense_newpage_revenue)
+    mesh_income = statement.calculatePlatformIncome(
+      homepage_revenue = adsense_homepage_revenue,
+      homesubpage_revenue = 0,
+      newpage_revenue = adsense_newpage_revenue,
+      socialpage_revenue = gam_social_revenue,
+      collection_ad_revenue = gam_profile_revenue, 
+      article_ad_revenue = gam_article_revenue
+    )
     
     # user points
     user_points = statement.getTotalPoints(MESH_GQL_ENDPOINT)
@@ -610,7 +626,6 @@ def month_statements(months: int=1):
     publisher_share_table = statement.publisherSponsorshipShare(MESH_GQL_ENDPOINT, mutual_fund)
     
     # create statement
-    # TODO: gam_revenue and user_points should get the real data after implemented
     start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
     end_date = current_time.isoformat().replace('+00:00', 'Z')
     
@@ -618,14 +633,14 @@ def month_statements(months: int=1):
         start_date=start_date,
         end_date=end_date,
         gql_endpoint = MESH_GQL_ENDPOINT,
-        adsense_revenue = adsense_revenue,
-        gam_revenue = 100,
+        adsense_total_revenue = adsense_total_revenue,
+        gam_total_revenue = gam_total_revenues,
+        gam_article_revenue = gam_article_revenue,
         mesh_income = mesh_income,
         mutual_fund = mutual_fund,
         user_points = user_points,
         publisher_share_table = publisher_share_table,
-        pv_table = pv_table,
-        gam_complementary = "此為測試資料"
+        pv_table = pv_table
     )
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
