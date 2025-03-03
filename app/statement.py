@@ -586,7 +586,6 @@ def getGamRevenues(network_code):
     for revenue in revenues:
         ad_name = revenue.dimension_values[0].string_value
         dollor  = revenue.metric_value_groups[0].primary_values[0].double_value
-        total += dollor
         if "mmesh_social" in ad_name:
             revenue_table[gam_social_title] += dollor
         if "mmesh_profile" in ad_name:
