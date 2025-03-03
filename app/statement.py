@@ -547,7 +547,6 @@ def getGamRevenues(network_code):
     scopes = ["https://www.googleapis.com/auth/admanager"]
     credentials, _ = default(scopes=scopes)
     credentials.refresh(Request())
-    print("Credentials scrop: ", credentials.scopes)
     
     # Create report
     revenue_table = {
@@ -555,7 +554,7 @@ def getGamRevenues(network_code):
         gam_article_title: 0.0,
         gam_profile_title: 0.0,
     }
-    client = admanager_v1.ReportServiceClient()
+    client = admanager_v1.ReportServiceClient(credentials=credentials)
 
     report = admanager_v1.Report()
     report.report_definition.dimensions = ['AD_UNIT_CODE']
