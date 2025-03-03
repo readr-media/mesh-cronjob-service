@@ -21,6 +21,9 @@ from openpyxl.styles import PatternFill
 from dateutil.relativedelta import relativedelta
 from app.gql import gql_query
 from google.ads import admanager_v1
+from google.auth import default
+from google.auth.transport.requests import Request
+
 
 GAM_REVENUE_PARTIAL = 0.85 # How much of the revenue goes to publisher's revenue
 
@@ -540,6 +543,12 @@ def getTotalPoints(gql_endpoint):
 
 # GAM revenue related functions
 def getGamRevenues(network_code):
+    # Refresh scope
+    scopes = ["https://www.googleapis.com/auth/admanager"]
+    credentials, _ = default(scopes=scopes)
+    credentials.refresh(Request())
+    print("Credentials scrop: ", credentials.scopes)
+    
     # Create report
     revenue_table = {
         gam_social_title: 0.0,
@@ -548,7 +557,7 @@ def getGamRevenues(network_code):
     }
     client = admanager_v1.ReportServiceClient()
 
-    report = admanager_v1.Report(display_name="TEST")
+    report = admanager_v1.Report()
     report.report_definition.dimensions = ['AD_UNIT_CODE']
     report.report_definition.metrics = ['ADSENSE_REVENUE']
     report.report_definition.report_type = "HISTORICAL"
