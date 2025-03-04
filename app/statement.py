@@ -14,7 +14,7 @@ from google.analytics.data_v1beta.types import (
     FilterExpressionList
 )
 from google.cloud import bigquery as bq
-from datetime import datetime, timezone, date, timedelta
+from datetime import datetime, timezone
 import math
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
@@ -24,7 +24,7 @@ from google.ads import admanager_v1
 from google.auth import default
 from google.auth.transport.requests import Request
 from google.type.date_pb2 import Date
-
+from app.config import ADSENSE_EXPECTED_RATIO, GAM_EXPECTED_RATIO
 
 GAM_REVENUE_PARTIAL = 0.85 # How much of the revenue goes to publisher's revenue
 
@@ -129,7 +129,7 @@ query publishers{
 def to_google_date(dt):
     return Date(year=dt.year, month=dt.month, day=dt.day)
 
-def getAdsenseRevenues(ga_resource_id, start_datetime, end_datetime):
+def getAdsenseRevenues(ga_resource_id, start_datetime, end_datetime, expected_ratio: float=ADSENSE_EXPECTED_RATIO):
     '''
         In this function, we will get revenues from previous months.
         For example, when ga_months=1, and current date is 2024-10-05,
@@ -194,7 +194,7 @@ def getAdsenseRevenues(ga_resource_id, start_datetime, end_datetime):
     total_revenue = 0
     for row in response.rows:
         dimension_value = str(row.dimension_values[0].value)
-        metric_value = float(row.metric_values[0].value)
+        metric_value = expected_ratio*float(row.metric_values[0].value)
         revenue_table[dimension_value] = metric_value
         total_revenue += metric_value
     revenue_table['total'] = total_revenue
@@ -550,7 +550,7 @@ def getTotalPoints(gql_endpoint):
     return total_points
 
 # GAM revenue related functions
-def getGamRevenues(network_code, start_datetime, end_datetime):
+def getGamRevenues(network_code, start_datetime, end_datetime, expected_ratio: float=GAM_EXPECTED_RATIO):
     # Refresh scope
     scopes = ["https://www.googleapis.com/auth/admanager"]
     credentials, _ = default(scopes=scopes)
@@ -605,5 +605,7 @@ def getGamRevenues(network_code, start_datetime, end_datetime):
             revenue_table[gam_profile_title] += dollor
         if "mmesh_article" in ad_name:
             revenue_table[gam_article_title] += dollor
+    for key, value in revenue_table.items():
+        revenue_table[key] = value * expected_ratio
     revenue_table['total'] = sum(revenue_table.values())
     return revenue_table

@@ -62,3 +62,7 @@ DUMMY_MEMBER_INFO = {
     "pickCount": 0,
     "followerCount": 0,
 }
+
+### for statement
+ADSENSE_EXPECTED_RATIO = 0.9
+GAM_EXPECTED_RATIO = 0.8
