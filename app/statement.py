@@ -446,8 +446,9 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
             item_name = f"{month}月{type_name}"
             value = revenue['value']
             charge = math.ceil(value*charge_percent)
+            real_value = value-charge
             ws[f'A{item_row}'], ws[f'B{item_row}'], ws[f'C{item_row}'] = start_date, "", item_name
-            ws[f'D{item_row}'], ws[f'E{item_row}'], ws[f'F{item_row}'] = value, charge, (value-charge)
+            ws[f'D{item_row}'], ws[f'E{item_row}'], ws[f'F{item_row}'] = value, charge, real_value if real_value>0 else 0
             item_row += 1
             
         # file processing
