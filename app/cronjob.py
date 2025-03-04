@@ -590,8 +590,20 @@ def month_statements(months: int=1):
     GAM_NETWORK_ID = os.environ['GAM_NETWORK_ID']
     
     # get revenue of each page
-    adsense_revenue_table = statement.getAdsenseRevenues(GA_RESOURCE_ID, months)
-    gam_revenue_table = statement.getGamRevenues(GAM_NETWORK_ID)
+    current_time = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    start_datetime = current_time - relativedelta(months=months)
+    end_datetime = current_time - relativedelta(days=1)
+    
+    adsense_revenue_table = statement.getAdsenseRevenues(
+      ga_resource_id = GA_RESOURCE_ID, 
+      start_datetime = start_datetime, 
+      end_datetime   = end_datetime
+    )
+    gam_revenue_table = statement.getGamRevenues(
+      network_code   = GAM_NETWORK_ID, 
+      start_datetime = start_datetime, 
+      end_datetime   = end_datetime
+    )
     
     adsense_homepage_revenue = adsense_revenue_table.get(statement.adsense_homepage_title, 0.0)
     adsense_socialpage_revenue = adsense_revenue_table.get(statement.adsense_socialpage_title, 0.0)
@@ -618,20 +630,15 @@ def month_statements(months: int=1):
     user_points = statement.getTotalPoints(MESH_GQL_ENDPOINT)
     
     # pv_table
-    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    start_time = (current_time - relativedelta(months=months)).isoformat()
-    pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time)
+    pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time=start_datetime.isoformat())
     
     # publisher share
     publisher_share_table = statement.publisherSponsorshipShare(MESH_GQL_ENDPOINT, mutual_fund)
     
-    # create statement
-    start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
-    end_date = current_time.isoformat().replace('+00:00', 'Z')
-    
+    # create statement    
     filename = statement.createMonthStatement(
-        start_date=start_date,
-        end_date=end_date,
+        start_date  = start_datetime.isoformat().replace('+00:00', 'Z'),
+        end_date    = end_datetime.isoformat().replace('+00:00', 'Z'),
         gql_endpoint = MESH_GQL_ENDPOINT,
         adsense_total_revenue = adsense_total_revenue,
         gam_total_revenue = gam_total_revenues,

@@ -14,7 +14,7 @@ from google.analytics.data_v1beta.types import (
     FilterExpressionList
 )
 from google.cloud import bigquery as bq
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date, timedelta
 import math
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
@@ -23,6 +23,7 @@ from app.gql import gql_query
 from google.ads import admanager_v1
 from google.auth import default
 from google.auth.transport.requests import Request
+from google.type.date_pb2 import Date
 
 
 GAM_REVENUE_PARTIAL = 0.85 # How much of the revenue goes to publisher's revenue
@@ -125,11 +126,18 @@ query publishers{
 }
 """
 
-def getAdsenseRevenues(ga_resource_id, ga_months):
+def to_google_date(dt):
+    return Date(year=dt.year, month=dt.month, day=dt.day)
+
+def getAdsenseRevenues(ga_resource_id, start_datetime, end_datetime):
+    '''
+        In this function, we will get revenues from previous months.
+        For example, when ga_months=1, and current date is 2024-10-05,
+        we will get revenues from 2024-09-01 to 2024-09-30.
+    '''
     # setup ga days
-    current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    start_datetime = current_time - relativedelta(months=ga_months)
     start_date = datetime.strftime(start_datetime, '%Y-%m-%d')
+    end_date = datetime.strftime(end_datetime, '%Y-%m-%d')
     
     # setup filter criteria
     filter_criteria = FilterExpression(
@@ -173,9 +181,9 @@ def getAdsenseRevenues(ga_resource_id, ga_months):
             Dimension(name="pageTitle"),
         ],
         metrics=[
-            Metric(name="totalAdRevenue"),  # 使用者
+            Metric(name="totalAdRevenue"),
         ],
-        date_ranges=[DateRange(start_date=start_date, end_date="today")],
+        date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
         dimension_filter=filter_criteria,
     )
     client = BetaAnalyticsDataClient()
@@ -542,7 +550,7 @@ def getTotalPoints(gql_endpoint):
     return total_points
 
 # GAM revenue related functions
-def getGamRevenues(network_code):
+def getGamRevenues(network_code, start_datetime, end_datetime):
     # Refresh scope
     scopes = ["https://www.googleapis.com/auth/admanager"]
     credentials, _ = default(scopes=scopes)
@@ -560,7 +568,12 @@ def getGamRevenues(network_code):
     report.report_definition.dimensions = ['AD_UNIT_CODE']
     report.report_definition.metrics = ['ADSENSE_REVENUE']
     report.report_definition.report_type = "HISTORICAL"
-    report.report_definition.date_range = admanager_v1.types.Report.DateRange(relative="LAST_30_DAYS")
+    report.report_definition.date_range = admanager_v1.types.Report.DateRange(
+        fixed = admanager_v1.types.Report.DateRange.FixedDateRange(
+            start_date=to_google_date(start_datetime),
+            end_date=to_google_date(end_datetime)
+        )
+    )
 
     request = admanager_v1.CreateReportRequest(
         parent=f"networks/{network_code}",
