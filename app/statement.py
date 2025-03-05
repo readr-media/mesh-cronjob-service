@@ -229,11 +229,9 @@ def calculatePlatformIncome(homepage_revenue: float, homesubpage_revenue: float,
     total_revenue = (homepage_revenue+homesubpage_revenue)*0.5 + newpage_revenue*0.5 + socialpage_revenue*0.85*0.5 + collection_ad_revenue*0.85*0.5 + article_ad_revenue*0.85*0.45
     return total_revenue
 
-def publisherSponsorshipShare(gql_endpoint, mutual_fund):
+def publisherSponsorshipShare(gql_endpoint, mutual_fund, start_time):
     # fetch data
-    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    start_datetime = (current_time - relativedelta(months=1)).isoformat().replace('+00:00', 'Z')
-    data = gql_query(gql_endpoint, gql_sponsorships.format(START_TIME=start_datetime))
+    data = gql_query(gql_endpoint, gql_sponsorships.format(START_TIME=start_time))
     sponsorships = data['sponsorships']
 
     # calculate statistic from sponsorships

@@ -637,7 +637,7 @@ def month_statements(months: int=1):
     pv_table = statement.getPublisherPageview(BIGQUERY_DB, BIGQUERY_TABLE_CLICK, start_time=start_datetime.isoformat())
     
     # publisher share
-    publisher_share_table = statement.publisherSponsorshipShare(MESH_GQL_ENDPOINT, mutual_fund)
+    publisher_share_table = statement.publisherSponsorshipShare(MESH_GQL_ENDPOINT, mutual_fund, start_time=start_datetime.isoformat().replace('+00:00', 'Z'))
     
     # create statement    
     filename = statement.createMonthStatement(
