@@ -31,7 +31,8 @@ GAM_REVENUE_PARTIAL = 0.85 # How much of the revenue goes to publisher's revenue
 adsense_homepage_title = "READr Mesh 讀選"
 adsense_newpage_title  = "最新 | READr Mesh 讀選"
 adsense_socialpage_title = "社群 | READr Mesh 讀選"
-gam_social_title = "social"
+gam_home_title    = "home"
+gam_social_title  = "social"
 gam_article_title = "article"
 gam_profile_title = "profile"
 
@@ -559,6 +560,7 @@ def getGamRevenues(network_code, start_datetime, end_datetime, expected_ratio: f
     
     # Create report
     revenue_table = {
+        gam_home_title: 0.0,
         gam_social_title: 0.0,
         gam_article_title: 0.0,
         gam_profile_title: 0.0,
@@ -600,6 +602,8 @@ def getGamRevenues(network_code, start_datetime, end_datetime, expected_ratio: f
     for revenue in revenues:
         ad_name = revenue.dimension_values[0].string_value
         dollor  = revenue.metric_value_groups[0].primary_values[0].double_value
+        if "mmesh_home" in ad_name:
+            revenue_table[gam_home_title] += dollor
         if "mmesh_social" in ad_name:
             revenue_table[gam_social_title] += dollor
         if "mmesh_profile" in ad_name:

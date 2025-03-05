@@ -609,6 +609,7 @@ def month_statements(months: int=1):
     adsense_socialpage_revenue = adsense_revenue_table.get(statement.adsense_socialpage_title, 0.0)
     adsense_newpage_revenue = adsense_revenue_table.get(statement.adsense_newpage_title, 0.0)
     
+    gam_home_revenue    = gam_revenue_table.get(statement.gam_home_title, 0.0)
     gam_social_revenue  = gam_revenue_table.get(statement.gam_social_title, 0.0)
     gam_article_revenue = gam_revenue_table.get(statement.gam_article_title, 0.0)
     gam_profile_revenue = gam_revenue_table.get(statement.gam_profile_title, 0.0)
@@ -616,7 +617,10 @@ def month_statements(months: int=1):
     adsense_total_revenue  = adsense_revenue_table.get('total', 0.0)
     gam_total_revenues     = gam_revenue_table.get('total', 0.0)
     
-    mutual_fund = statement.calculateMutualFund(adsense_homepage_revenue, adsense_newpage_revenue)
+    mutual_fund = statement.calculateMutualFund(
+      homepage_revenue = adsense_homepage_revenue+gam_home_revenue, 
+      newpage_revenue  = adsense_newpage_revenue
+    )
     mesh_income = statement.calculatePlatformIncome(
       homepage_revenue = adsense_homepage_revenue,
       homesubpage_revenue = 0,
@@ -647,7 +651,9 @@ def month_statements(months: int=1):
         mutual_fund = mutual_fund,
         user_points = user_points,
         publisher_share_table = publisher_share_table,
-        pv_table = pv_table
+        pv_table = pv_table,
+        adsense_complementary = f"為Adsense預估收益打{config.ADSENSE_EXPECTED_RATIO}折之結果",
+        gam_complementary = f"為Gam預估收益打{config.GAM_EXPECTED_RATIO}折之結果",
     )
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
