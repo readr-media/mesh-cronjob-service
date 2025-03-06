@@ -455,7 +455,7 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
         filenames.append(filename)
         var_statements["data"].append({
             "title": f"{customId}_{date}",
-            "type": "quarter",
+            "type": "media",
             "url": f"{domain}{filename}",
             "publisher": {
                 "connect": {
