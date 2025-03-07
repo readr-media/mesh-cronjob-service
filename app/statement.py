@@ -443,8 +443,8 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
             type_name = "廣告收益"
             createdAt = revenue['createdAt']
             value = revenue['value']
-            start_date = revenue['start_date']
-            month = datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%m')
+            revenue_start_date = revenue['start_date']
+            month = datetime.strptime(revenue_start_date, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%m')
             item_name = f"{month}月{type_name}"
             
             ws[f'A{item_row}'], ws[f'B{item_row}'], ws[f'C{item_row}'] = createdAt, "", item_name
