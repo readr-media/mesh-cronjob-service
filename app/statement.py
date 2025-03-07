@@ -568,7 +568,7 @@ def getGamRevenues(network_code, start_datetime, end_datetime, expected_ratio: f
 
     report = admanager_v1.Report()
     report.report_definition.dimensions = ['AD_UNIT_CODE']
-    report.report_definition.metrics = ['ADSENSE_REVENUE']
+    report.report_definition.metrics = ['REVENUE']
     report.report_definition.report_type = "HISTORICAL"
     report.report_definition.date_range = admanager_v1.types.Report.DateRange(
         fixed = admanager_v1.types.Report.DateRange.FixedDateRange(
