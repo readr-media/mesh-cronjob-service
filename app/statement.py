@@ -289,6 +289,7 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
     ws.column_dimensions["A"].width = 20
     ws.column_dimensions["B"].width = 20
     ws.column_dimensions["C"].width = 40
+    ws.column_dimensions["D"].width = 20
     orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
     precision = "{:.3f}"
     
@@ -335,7 +336,7 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
     ws.merge_cells(f"A{publisher_start_row}:C{publisher_start_row}")
     ws[f"A{publisher_start_row}"].fill = orange_fill
     ws[f'A{publisher_start_row}'] = "媒體廣告分潤"
-    ws[f'A{publisher_start_row+1}'], ws[f'B{publisher_start_row+1}'], ws[f'C{publisher_start_row+1}'] = "媒體名稱", "共同基金池分潤(TWD)", "文章頁廣告分潤(TWD)"
+    ws[f'A{publisher_start_row+1}'], ws[f'B{publisher_start_row+1}'], ws[f'C{publisher_start_row+1}'], ws[f'D{publisher_start_row+1}'] = "媒體名稱", "共同基金池分潤(TWD)", "文章頁廣告分潤(TWD)", "瀏覽次數(PV)"
 
     data = gql_query(gql_endpoint, gql_statement_publishers)
     publishers = data['publishers']
@@ -348,8 +349,9 @@ def createMonthStatement(start_date: str, end_date: str, gql_endpoint: str, adse
     for idx, publisher in enumerate(publishers):
         id, title, full_content = publisher['id'], publisher['title'], publisher['full_content']
         sponsorship_share = publisher_share_table.get(str(id), 0.0)
-        pv_share = (pv_table.get(str(id), 0.0)/total_pv)*gam_article_revenue*GAM_REVENUE_PARTIAL if full_content==True else 0
-        ws[f'A{index+idx}'], ws[f'B{index+idx}'], ws[f'C{index+idx}'] = title, precision.format(sponsorship_share), precision.format(pv_share)
+        publisher_pv = pv_table.get(str(id), 0.0)
+        pv_share = (publisher_pv/total_pv)*gam_article_revenue*GAM_REVENUE_PARTIAL if full_content==True else 0
+        ws[f'A{index+idx}'], ws[f'B{index+idx}'], ws[f'C{index+idx}'], ws[f'D{index+idx}'] = title, precision.format(sponsorship_share), precision.format(pv_share), publisher_pv
         shares_table[id] = {
             "title": title,
             "sponsorship_share": sponsorship_share,
