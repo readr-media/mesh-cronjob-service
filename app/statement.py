@@ -96,6 +96,7 @@ query revenues{{
     }}
     type
     value
+    createdAt
     start_date
   }}
 }}
@@ -400,7 +401,7 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
         "data": []
     }
     for publisher in publishers:
-        pid, customId, title = publisher['id'], publisher['customId'], publisher['title']
+        pid, customId, _ = publisher['id'], publisher['customId'], publisher['title']
         folder = os.path.join("statements", "media", customId)
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -440,14 +441,14 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
             if type_name != "story_ad_revenue":
                 continue
             type_name = "廣告收益"
+            createdAt = revenue['createdAt']
+            value = revenue['value']
             start_date = revenue['start_date']
             month = datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%m')
             item_name = f"{month}月{type_name}"
-            value = revenue['value']
-            charge = math.ceil(value*charge_percent)
-            real_value = value-charge
-            ws[f'A{item_row}'], ws[f'B{item_row}'], ws[f'C{item_row}'] = start_date, "", item_name
-            ws[f'D{item_row}'], ws[f'E{item_row}'], ws[f'F{item_row}'] = value, charge, real_value if real_value>0 else 0
+            
+            ws[f'A{item_row}'], ws[f'B{item_row}'], ws[f'C{item_row}'] = createdAt, "", item_name
+            ws[f'D{item_row}'], ws[f'E{item_row}'], ws[f'F{item_row}'] = value, 0, value
             item_row += 1
             
         # file processing
