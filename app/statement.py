@@ -472,7 +472,7 @@ def createMediaStatements(gql_endpoint: str, domain: str, start_date: str, end_d
     return filenames
 
 def semiAnnualStatement(gql_endpoint: str, months: int=6):
-    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    current_time = datetime.now(timezone.utc).replace(days=1, hour=0, minute=0, second=0, microsecond=0)
     date = current_time.strftime("%Y-%m-%d")
 
     # prefetching the necessary data

@@ -663,9 +663,9 @@ def media_statements(months: int=2):
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     DOMAIN = os.environ['PRIVATE_BUCKET_DOMAIN']
     ENV = os.environ.get('ENV', 'dev')
-    current_time = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    current_time = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     start_date = (current_time - relativedelta(months=months)).isoformat().replace('+00:00', 'Z')
-    end_date = current_time.isoformat().replace('+00:00', 'Z')
+    end_date = (current_time - relativedelta(days=1)).isoformat().replace('+00:00', 'Z')
     
     # check the month, quater statements can only process in odd-numbered months
     if ENV!='dev':
