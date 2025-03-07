@@ -50,7 +50,7 @@ def get_most_like_comment(gql_endpoint, story_id):
 def gql_fetch_publisher_stories(gql_endpoint, story_type: str="story", take_num: int=config.PUBLISHER_STORIES_NUM):
     publisher_stories = {}
     try:
-        if story_type!="story" or story_type!="podcast":
+        if story_type!="story" and story_type!="podcast":
             raise Exception("story_type must be 'story' or 'podcast'")
       
         gql_transport = RequestsHTTPTransport(url=gql_endpoint)
