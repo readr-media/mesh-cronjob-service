@@ -656,10 +656,10 @@ query{{
         id: {{
           equals: {SOURCE_ID}
         }},
-        story_type: {{
-          equals: {TYPE}
-        }},
-      }}
+      }},
+      story_type: {{
+        equals: {TYPE}
+      }},
     }},
     orderBy: {{
       published_date: desc
