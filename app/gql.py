@@ -47,9 +47,12 @@ def get_most_like_comment(gql_endpoint, story_id):
     most_like_comment = sorted(comments, key=lambda comment: comment.get('likeCount', 0), reverse=True)[0]
     return most_like_comment
   
-def gql_fetch_publisher_stories(gql_endpoint, take_num: int=config.PUBLISHER_STORIES_NUM):
+def gql_fetch_publisher_stories(gql_endpoint, story_type: str="story", take_num: int=config.PUBLISHER_STORIES_NUM):
     publisher_stories = {}
     try:
+        if story_type!="story" or story_type!="podcast":
+            raise Exception("story_type must be 'story' or 'podcast'")
+      
         gql_transport = RequestsHTTPTransport(url=gql_endpoint)
         gql_client = Client(transport=gql_transport,
                             fetch_schema_from_transport=True)
@@ -64,14 +67,15 @@ def gql_fetch_publisher_stories(gql_endpoint, take_num: int=config.PUBLISHER_STO
             id = publisher['id']
             customId = publisher['customId'] # use this as file name
             print(f"fetch the publisher stories for {customId}")
-            stories = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=take_num)))
+            stories = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=take_num, TYPE=story_type)))
             stories = stories['stories']
             # calculate total picks
             total_picksCount = 0
             for story in stories:
                 total_picksCount += story['picksCount']
             # format json
-            publisher_stories[f'{customId}_stories.json'] = {
+            filename_suffix = "stories" if story_type=="story" else "podcasts"
+            publisher_stories[f'{customId}_{filename_suffix}.json'] = {
                 "source": {
                     "id": id,
                     "customId": customId,
@@ -651,7 +655,10 @@ query{{
       source: {{
         id: {{
           equals: {SOURCE_ID}
-        }}
+        }},
+        story_type: {{
+          equals: {TYPE}
+        }},
       }}
     }},
     orderBy: {{

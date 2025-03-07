@@ -360,7 +360,24 @@ def hotpage_most_like_comments(days=config.HOTPAGE_MOST_LIKE_DAYS):
     
 def publisher_stories():
     gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
-    publisher_stories = gql_fetch_publisher_stories(gql_endpoint, config.PUBLISHER_STORIES_NUM)
+    publisher_stories = gql_fetch_publisher_stories(
+      gql_endpoint = gql_endpoint,
+      story_type   = "story", 
+      take_num     = config.PUBLISHER_STORIES_NUM
+    )
+    if publisher_stories and isinstance(publisher_stories, dict):
+      for filename, stories in publisher_stories.items():
+        filename = os.path.join('data', filename)
+        save_file(filename, stories)
+        upload_blob(filename)
+  
+def publisher_podcasts():
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    publisher_stories = gql_fetch_publisher_stories(
+      gql_endpoint = gql_endpoint,
+      story_type   = "podcast", 
+      take_num     = config.PUBLISHER_PODCASTS_NUM
+    )
     if publisher_stories and isinstance(publisher_stories, dict):
       for filename, stories in publisher_stories.items():
         filename = os.path.join('data', filename)
