@@ -26,7 +26,7 @@ from google.auth.transport.requests import Request
 from google.type.date_pb2 import Date
 from app.config import ADSENSE_EXPECTED_RATIO, GAM_EXPECTED_RATIO
 
-GAM_REVENUE_PARTIAL = 0.85 # How much of the revenue goes to publisher's revenue
+GAM_REVENUE_PARTIAL = 0.85*0.55 # How much of the revenue goes to publisher's revenue
 
 adsense_homepage_title = "READr Mesh 讀選"
 adsense_newpage_title  = "最新 | READr Mesh 讀選"
