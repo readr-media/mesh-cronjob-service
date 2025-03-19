@@ -28,6 +28,12 @@ def gql_fetch_latest_stories(gql_endpoint, days: int):
     all_stories = all_stories['stories']
     return all_stories
   
+def gql_fetch_latest_podcasts(gql_endpoint, take: int=config.LATEST_PODCASTS_NUM):
+    ### fetch podcasts, which contain story
+    all_podcasts = gql_query(gql_endpoint, gql_mesh_latest_podcasts.format(TAKE=take))
+    all_podcasts = all_podcasts['podcasts']
+    return all_podcasts
+  
 def gql_fetch_media_statistics(gql_endpoint, days: int):
     ### calculate start time
     current_time = datetime.now(pytz.timezone('Asia/Taipei'))
@@ -202,7 +208,10 @@ query Stories{{
         id: {{
           gt: 0
         }}
-      }}
+      }},
+      story_type: {{
+        equals: story
+      }},
     }},
     orderBy: {{
       published_date: desc
@@ -258,6 +267,70 @@ query Stories{{
     commentCount
     paywall
     full_screen_ad
+  }}
+}}
+'''
+
+gql_mesh_latest_podcasts = '''
+query Podcasts{{
+  podcasts(
+    orderBy: {{
+      id: desc
+    }},
+    take: {TAKE}
+  ){{
+    story{{
+      id
+      url
+      title
+      category{{
+        id
+        slug
+      }}
+      source{{
+        id
+        title
+        customId
+      }}
+      published_date
+      summary
+      og_title
+      og_image
+      og_description
+      full_content
+      origid
+      picksCount: pickCount(
+        where: {{
+          kind: {{
+            equals: "read"
+          }},
+          is_active: {{
+            equals: true
+          }}
+        }}
+      )
+      picks: pick(
+        where: {{
+          kind: {{
+            equals: "read"
+          }},
+          is_active: {{
+            equals: true
+          }}
+        }}
+        take: 5
+      ){{
+        createdAt
+        member{{
+          id
+          name
+          avatar
+        }}
+      }}
+      commentCount
+      paywall
+      full_screen_ad
+    }}
   }}
 }}
 '''

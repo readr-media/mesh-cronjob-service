@@ -12,6 +12,10 @@ from app.tool import get_current_timestamp, gen_uuid
 import app.statement as statement
 from dateutil.relativedelta import relativedelta
 
+EXCEPTION_CATEGORY_SLUG = [
+  "podcast"
+]
+
 def most_follower_members(most_follower_num: int):
     MESH_GQL_ENDPOINT = os.environ['MESH_GQL_ENDPOINT']
     data = []
@@ -103,16 +107,20 @@ def most_read_members(most_read_member_days: int, most_read_member_num: int):
       upload_blob(filename)
     return True
   
-def most_read_story(all_stories: list):
-    ### categorize stories
+def most_read_stories(all_stories: list, all_podcasts: list):
+    ### categorize both stories and podcasts
     gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
     categorized_stories = {}
     for story in all_stories:
       category_slug = story.get('category', {}).get('slug', None)
-      if category_slug==None:
+      if (category_slug==None) or (category_slug in EXCEPTION_CATEGORY_SLUG):
         continue
       story_list = categorized_stories.setdefault(category_slug, [])
       story_list.append(story)
+
+    story_list = categorized_stories.setdefault("podcast", [])
+    for podcast in all_podcasts:
+      story_list.append(podcast['story'])
 
     ### sorted by pick count for each category
     sorted_categorized_stories = {}

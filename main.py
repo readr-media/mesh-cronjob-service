@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from app.gql import gql_fetch_latest_stories, gql_fetch_media_statistics
+from app.gql import gql_fetch_latest_stories, gql_fetch_media_statistics, gql_fetch_latest_podcasts
 import app.cronjob as cronjob
 import app.config as config
 
@@ -39,14 +39,15 @@ async def data_most_sponser_publisher():
   return "ok"
 
 @app.post('/cronjob/most_read_story')
-async def data_most_pick_story():
+async def data_most_read_story():
   '''
   Cronjob to generate most_pick_stories based on different category
   '''
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
   most_read_story_days = int(os.environ.get('MOST_READ_STORY_DAYS', config.DEFAULT_MOST_READ_STORY_DAYS))
-  all_stories = gql_fetch_latest_stories(gql_endpoint, most_read_story_days)
-  cronjob.most_read_story(all_stories)
+  all_stories  = gql_fetch_latest_stories(gql_endpoint, most_read_story_days)
+  all_podcasts = gql_fetch_latest_podcasts(gql_endpoint)
+  cronjob.most_read_stories(all_stories, all_podcasts)
   return "ok"
 
 @app.post('/cronjob/most_followers')
