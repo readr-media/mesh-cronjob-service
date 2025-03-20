@@ -459,6 +459,7 @@ query Story{{
     isMember
     published_date
     full_screen_ad
+    story_type
   }}
 }}
 '''
@@ -485,6 +486,7 @@ query Story{{
     isMember
     published_date
     full_screen_ad
+    story_type
   }}
 }}
 '''
@@ -611,6 +613,7 @@ query Story{{
         isMember
         published_date
         full_screen_ad
+        story_type
     }}
 }}
 '''
@@ -682,6 +685,7 @@ query Comments($where: CommentWhereInput!){
         customId
       }
       published_date
+      story_type
     }
     likeCount: likeCount(where: {
       is_active: {
@@ -778,6 +782,7 @@ query{{
     paywall
     full_screen_ad
     full_content
+    story_type
   }}
 }}
 '''
