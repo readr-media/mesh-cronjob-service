@@ -52,7 +52,59 @@ def get_most_like_comment(gql_endpoint, story_id):
       return {}
     most_like_comment = sorted(comments, key=lambda comment: comment.get('likeCount', 0), reverse=True)[0]
     return most_like_comment
-  
+
+def gql_fetch_publisher_profile(gql_endpoint, story_take_num: int, podcast_take_num: int):
+    publisher_profile = {}
+    try:
+        gql_transport = RequestsHTTPTransport(url=gql_endpoint)
+        gql_client = Client(transport=gql_transport,
+                            fetch_schema_from_transport=True)
+        # get publishers information
+        publishers = gql_client.execute(gql(gql_mesh_publishers))
+        publishers = publishers['publishers']
+
+        # get stories for each publishers
+        for publisher in publishers:
+            if publisher['source_type']=='empty':
+                continue
+            id = publisher['id']
+            customId   = publisher['customId'] # use this as file name
+            podcastUrl = publisher['podcast_url']
+            
+            print(f"fetch the publisher stories for {customId}")
+            stories  = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=story_take_num, TYPE="story")))
+            stories  = stories['stories']
+            podcasts = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=podcast_take_num, TYPE="podcast")))
+            podcasts = podcasts['stories']
+            
+            # calculate total picks
+            total_picksCount = 0
+            for story in stories:
+                total_picksCount += story['picksCount']
+            for podcast in podcasts:
+                total_picksCount += podcast['picksCount']
+                
+            # format json
+            publisher_profile[f'{customId}_profile.json'] = {
+                "source": {
+                    "id": id,
+                    "customId": customId,
+                    "title": publisher['title'],
+                    "official_site": publisher['official_site'],
+                    "logo": publisher['logo'],
+                    "description": publisher['description'],
+                    "followerCount": publisher['followerCount'],
+                    "sponsoredCount": publisher['sponsoredCount'],
+                    "picksCount": total_picksCount,
+                    "showPodcastTab": True if podcastUrl else False
+                },
+                "stories": stories,
+                "podcasts": podcasts,
+            }
+    except Exception as e:
+        print("gql_fetch_publisher_stories error:", e)
+    return publisher_profile
+
 def gql_fetch_publisher_stories(gql_endpoint, story_type: str="story", take_num: int=config.PUBLISHER_STORIES_NUM):
     publisher_stories = {}
     try:
@@ -113,6 +165,7 @@ query Publishers{
     full_screen_ad
     sponsoredCount
     followerCount
+    podcast_url
   }
 }
 '''
@@ -402,6 +455,7 @@ query stories($where: StoryWhereInput!, $orderBy: [StoryOrderByInput!]!, $take: 
       title
       customId
     }
+    story_type
   }
 }
 '''

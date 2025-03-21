@@ -365,7 +365,21 @@ def hotpage_most_like_comments(days=config.HOTPAGE_MOST_LIKE_DAYS):
       upload_blob(filename)
     else:
       print("hotpage_most_like: empty data")
-    
+
+def publisher_profile():
+    gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
+    publisher_stories = gql_fetch_publisher_profile(
+      gql_endpoint     = gql_endpoint,
+      story_take_num   = config.PUBLISHER_STORIES_NUM,
+      podcast_take_num = config.PUBLISHER_PODCASTS_NUM
+    )
+    if publisher_stories and isinstance(publisher_stories, dict):
+      for filename, stories in publisher_stories.items():
+        filename = os.path.join('data', filename)
+        save_file(filename, stories)
+        upload_blob(filename)
+
+# TODO: Merge to publisher_profile
 def publisher_stories():
     gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
     publisher_stories = gql_fetch_publisher_stories(
@@ -378,7 +392,8 @@ def publisher_stories():
         filename = os.path.join('data', filename)
         save_file(filename, stories)
         upload_blob(filename)
-  
+ 
+# TODO: Merge to publisher_profile 
 def publisher_podcasts():
     gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
     publisher_stories = gql_fetch_publisher_stories(
