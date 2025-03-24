@@ -440,14 +440,7 @@ def category_recommend_sponsors():
         if source_type=='empty':
             continue
         id = publisher['id']
-        publisher_table[id]= {
-            'id': id,
-            'title': publisher['title'],
-            'logo': publisher['logo'],
-            'customId': publisher['customId'],
-            'official_site': publisher['official_site'],
-            'sponsoredCount': publisher['sponsoredCount'],
-        }
+        publisher_table[id]= publisher
         statistic_template[id] = 0
     all_publisher_ids = list(publisher_table.keys())
     
