@@ -480,6 +480,7 @@ def category_recommend_sponsors():
                 "id": story['id'],
                 "url": story['url'],
                 "title": story['title'],
+                "isMember": story.get('isMember', False),
                 "published_date": story['published_date'],
                 "og_title": story["og_title"],
                 "og_image": story["og_image"],
