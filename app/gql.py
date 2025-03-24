@@ -478,27 +478,27 @@ query Podcasts{{
       og_image
       og_description
       isMember
-      category{
+      category{{
         slug
-      }
+      }}
       readsCount: pickCount(
-        where: {
-          kind: {
+        where: {{
+          kind: {{
             equals: "read"
-          },
-          is_active: {
+          }},
+          is_active: {{
             equals: true
-          }
-        }
+          }}
+        }}
       )
       commentCount
       paywall
       full_screen_ad
-      source{
+      source{{
         id
         title
         customId
-      }
+      }}
       story_type
     }}
   }}
