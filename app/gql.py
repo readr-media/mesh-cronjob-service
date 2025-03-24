@@ -194,23 +194,6 @@ query Publishers{
 }
 '''
 
-### SponsorCount should be modified to real data after connecting cashflow
-gql_mesh_sponsor_publishers = '''
-query Publishers{
-  publishers(where: {is_active: {equals: true}}){
-    id
-    title
-    official_site
-    logo
-    full_content
-    paywall
-    customId
-    sponsorCount: sponsoredCount
-    podcast_url
-  }
-}
-'''
-
 gql_readr_posts = '''
 query {{
 posts(

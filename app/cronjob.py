@@ -172,11 +172,11 @@ def most_sponsor_publisher(most_sponsors_num: int):
   gql_endpoint = os.environ['MESH_GQL_ENDPOINT']
   
   ### query data
-  all_publishers = gql_query(gql_endpoint, gql_mesh_sponsor_publishers)
+  all_publishers = gql_query(gql_endpoint, gql_mesh_publishers)
   all_publishers = all_publishers['publishers']
   
   ### Sort by SponsorCount(mock-data is sorted by followerCount)
-  sorted_publishers = sorted(all_publishers, key=lambda publisher: publisher.get('sponsorCount', 0), reverse=True)
+  sorted_publishers = sorted(all_publishers, key=lambda publisher: publisher.get('sponsoredCount', 0), reverse=True)
   sorted_publishers = sorted_publishers[:most_sponsors_num]
   
   ### Podcasts
