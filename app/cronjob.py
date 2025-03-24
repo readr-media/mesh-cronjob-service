@@ -179,7 +179,19 @@ def most_sponsor_publisher(most_sponsors_num: int):
   sorted_publishers = sorted(all_publishers, key=lambda publisher: publisher.get('sponsorCount', 0), reverse=True)
   sorted_publishers = sorted_publishers[:most_sponsors_num]
   
-  ### Pick top-[MOST_PICKCOUNT_PUBLISHER_NUM] stories for each publisher
+  ### Podcasts
+  podcasts = gql_query(gql_endpoint, gql_mesh_sponsor_podcasts.format(TAKE=config.MOST_SPONSOR_PUBLISHER_PODCASTS_NUM))
+  podcasts = podcasts['podcasts']
+  podcast_table = {}
+  for podcast in podcasts:
+    story = podcast['story']
+    if story:
+      publisher_id = story.get('publisher').get('id', None)
+      if publisher_id:
+        podcast_list = podcast_table.setdefault(publisher_id, [])
+        podcast_list.append(story)
+  
+  ### Pick top-[MOST_SPONSOR_PUBLISHER_STORY_NUM] stories for each publisher
   most_recommend_sponsors = []
   for publisher in sorted_publishers:
     id = publisher['id']
@@ -194,13 +206,20 @@ def most_sponsor_publisher(most_sponsors_num: int):
       "orderBy": {
         "id": "desc",
       },
-      "take": 5,
+      "take": config.MOST_SPONSOR_PUBLISHER_STORY_NUM,
     }
     stories = gql_query(gql_endpoint, gql_mesh_sponsor_stories, query_variable)
     stories = stories['stories'] if stories['stories'] else []
+    
+    # metadata
+    metadata = {
+      'withPodcast': True if publisher['podcast_url'] else False,
+    }
     most_recommend_sponsors.append({
+      'metadata': metadata,
       'publisher': publisher,
       'stories': stories,
+      'podcasts': podcast_table.get(id, [])[:config.MOST_SPONSOR_PUBLISHER_STORY_NUM]
     })
   
   ### Save and upload

@@ -206,6 +206,7 @@ query Publishers{
     paywall
     customId
     sponsorCount: sponsoredCount
+    podcast_url
   }
 }
 '''
@@ -458,6 +459,50 @@ query stories($where: StoryWhereInput!, $orderBy: [StoryOrderByInput!]!, $take: 
     story_type
   }
 }
+'''
+
+gql_mesh_sponsor_podcasts = '''
+query Podcasts{{
+  podcasts(
+    orderBy: {{
+      id: desc
+    }},
+    take: {TAKE}
+  ){{
+    story{{
+      id
+      url
+      title
+      published_date
+      og_title
+      og_image
+      og_description
+      isMember
+      category{
+        slug
+      }
+      readsCount: pickCount(
+        where: {
+          kind: {
+            equals: "read"
+          },
+          is_active: {
+            equals: true
+          }
+        }
+      )
+      commentCount
+      paywall
+      full_screen_ad
+      source{
+        id
+        title
+        customId
+      }
+      story_type
+    }}
+  }}
+}}
 '''
 
 gql_check_exist_stories = '''
