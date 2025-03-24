@@ -186,7 +186,7 @@ def most_sponsor_publisher(most_sponsors_num: int):
   for podcast in podcasts:
     story = podcast['story']
     if story:
-      publisher_id = story.get('publisher').get('id', None)
+      publisher_id = story.get('source').get('id', None)
       if publisher_id:
         podcast_list = podcast_table.setdefault(publisher_id, [])
         podcast_list.append(story)
