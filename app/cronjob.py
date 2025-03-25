@@ -11,6 +11,7 @@ from app.mongo import connect_db
 from app.tool import get_current_timestamp, gen_uuid
 import app.statement as statement
 from dateutil.relativedelta import relativedelta
+from app.airdrop import createAirdropTable
 
 EXCEPTION_CATEGORY_SLUG = [
   "podcast"
@@ -639,7 +640,8 @@ def month_statements(months: int=1):
     PRIVATE_BUCKET = os.environ["PRIVATE_BUCKET"]
     GA_RESOURCE_ID = os.environ['GA_RESOURCE_ID']
     BIGQUERY_DB = os.environ['BIGQUERY_DB']
-    BIGQUERY_TABLE_CLICK = os.environ['BIGQUERY_TABLE_CLICK']
+    BIGQUERY_TABLE_CLICK   = os.environ['BIGQUERY_TABLE_CLICK']
+    BIGQUERY_TABLE_GENERAL = os.environ['BIGQUERY_TABLE_GENERAL']
     GAM_NETWORK_ID = os.environ['GAM_NETWORK_ID']
     
     # get revenue of each page
@@ -707,6 +709,22 @@ def month_statements(months: int=1):
         pv_table = pv_table,
         adsense_complementary = f"為Adsense預估收益打{config.ADSENSE_EXPECTED_RATIO}折之結果",
         gam_complementary = f"為Gam預估收益打{config.GAM_EXPECTED_RATIO}折之結果",
+    )
+    upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
+    
+    # create airdrop table
+    start_iso_datetime = start_datetime.isoformat()
+    end_iso_datetime = end_datetime.isoformat()
+    filename = createAirdropTable(
+      gql_endpoint      = MESH_GQL_ENDPOINT,
+      start_time        = start_iso_datetime,
+      end_time          = end_iso_datetime,
+      bq_name           = BIGQUERY_DB,
+      bq_table_name     = BIGQUERY_TABLE_GENERAL,
+      homepage_revenue        = gam_home_revenue + adsense_homepage_revenue,
+      newpage_adsense_revenue = adsense_newpage_revenue,
+      social_gam_revenue      = gam_social_revenue + adsense_socialpage_revenue,
+      collection_gam_revenue  = gam_profile_revenue, 
     )
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
