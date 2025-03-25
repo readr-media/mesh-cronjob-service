@@ -109,8 +109,7 @@ def createAirdropTable(gql_endpoint, bq_db_name, bq_table_name, start_time, end_
             (len(set(followers))/total_followers)*social_gam_revenue*0.2
         )
         revenue_point = math.floor(revenue)
-        if revenue_point>0:
-            airdrop_table[memberId] = revenue_point
+        airdrop_table[memberId] = revenue_point
     
     # save the file
     date = datetime.now().strftime("%Y-%m-%d")  
