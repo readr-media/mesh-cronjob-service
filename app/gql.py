@@ -65,17 +65,16 @@ def gql_fetch_publisher_profile(gql_endpoint, story_take_num: int, podcast_take_
 
         # get stories for each publishers
         for publisher in publishers:
-            if publisher['source_type']=='empty':
-                continue
-            id = publisher['id']
-            customId   = publisher['customId'] # use this as file name
             storyTypes = publisher['story_type']
             storyTypes = [tp["name"] for tp in storyTypes]
-            
             showStoryTab   = True if "story" in storyTypes else False
             showPodcastTab = True if "podcast" in storyTypes else False
-            stories, podcasts = [], []
+            if showStoryTab==False and showPodcastTab==False:
+              continue
+            id = publisher['id']
+            customId   = publisher['customId'] # use this as file name
             
+            stories, podcasts = [], []
             if showStoryTab:
               print(f"fetch the publisher stories for {customId}")
               stories  = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=story_take_num, TYPE="story")))
