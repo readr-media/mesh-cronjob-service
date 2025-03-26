@@ -69,20 +69,28 @@ def gql_fetch_publisher_profile(gql_endpoint, story_take_num: int, podcast_take_
                 continue
             id = publisher['id']
             customId   = publisher['customId'] # use this as file name
-            podcastUrl = publisher['podcast_url']
+            storyTypes = publisher['story_type']
+            storyTypes = [tp["name"] for tp in storyTypes]
             
-            print(f"fetch the publisher stories for {customId}")
-            stories  = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=story_take_num, TYPE="story")))
-            stories  = stories['stories']
-            podcasts = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=podcast_take_num, TYPE="podcast")))
-            podcasts = podcasts['stories']
+            showStoryTab   = True if "story" in storyTypes else False
+            showPodcastTab = True if "podcast" in storyTypes else False
+            stories, podcasts = [], []
+            
+            if showStoryTab:
+              print(f"fetch the publisher stories for {customId}")
+              stories  = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=story_take_num, TYPE="story")))
+              stories  = stories['stories']
+            if showPodcastTab:
+              print(f"fetch the publisher podcasts for {customId}")
+              podcasts = gql_client.execute(gql(gql_publisher_latest_stories.format(SOURCE_ID=id, TAKE_NUM=podcast_take_num, TYPE="podcast")))
+              podcasts = podcasts['stories']
             
             # calculate total picks
             total_picksCount = 0
             for story in stories:
-                total_picksCount += story['picksCount']
+                total_picksCount += story.get('picksCount', 0)
             for podcast in podcasts:
-                total_picksCount += podcast['picksCount']
+                total_picksCount += podcast.get('picksCount', 0)
                 
             # format json
             publisher_profile[f'{customId}_profile.json'] = {
@@ -96,7 +104,8 @@ def gql_fetch_publisher_profile(gql_endpoint, story_take_num: int, podcast_take_
                     "followerCount": publisher['followerCount'],
                     "sponsoredCount": publisher['sponsoredCount'],
                     "picksCount": total_picksCount,
-                    "showPodcastTab": True if podcastUrl else False
+                    "showStoryTab": True if "story" in storyTypes else False,
+                    "showPodcastTab": True if "podcast" in storyTypes else False
                 },
                 "stories": stories,
                 "podcasts": podcasts,
@@ -165,7 +174,9 @@ query Publishers{
     full_screen_ad
     sponsoredCount
     followerCount
-    podcast_url
+    story_type{
+      name
+    }
   }
 }
 '''
