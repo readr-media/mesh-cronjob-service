@@ -314,6 +314,7 @@ query Stories{{
     commentCount
     paywall
     full_screen_ad
+    story_type
   }}
 }}
 '''
@@ -377,6 +378,7 @@ query Podcasts{{
       commentCount
       paywall
       full_screen_ad
+      story_type
     }}
   }}
 }}
