@@ -213,9 +213,9 @@ def most_sponsor_publisher(most_sponsors_num: int):
     stories = stories['stories'] if stories['stories'] else []
     
     # metadata
-    source_type = publisher['source_type']
+    story_type = publisher['story_type']
     withStory, withPodcast = False, False
-    for tp in source_type:
+    for tp in story_type:
       if tp['name'] == 'story':
         withStory = True
       if tp['name'] == 'podcast':
