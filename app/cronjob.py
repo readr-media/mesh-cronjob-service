@@ -213,8 +213,16 @@ def most_sponsor_publisher(most_sponsors_num: int):
     stories = stories['stories'] if stories['stories'] else []
     
     # metadata
+    source_type = publisher['source_type']
+    withStory, withPodcast = False, False
+    for tp in source_type:
+      if tp['name'] == 'story':
+        withStory = True
+      if tp['name'] == 'podcast':
+        withPodcast = True
     metadata = {
-      'withPodcast': True if publisher['podcast_url'] else False,
+      'withStory': withStory,
+      'withPodcast': withPodcast,
     }
     most_recommend_sponsors.append({
       'metadata': metadata,
