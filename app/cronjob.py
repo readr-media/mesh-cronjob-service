@@ -121,7 +121,9 @@ def most_read_stories(all_stories: list, all_podcasts: list):
 
     story_list = categorized_stories.setdefault("podcast", [])
     for podcast in all_podcasts:
-      story_list.append(podcast['story'])
+      story = podcast['story']
+      if story:
+        story_list.append(podcast['story'])
 
     ### sorted by pick count for each category
     sorted_categorized_stories = {}
