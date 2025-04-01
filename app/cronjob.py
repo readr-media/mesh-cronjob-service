@@ -733,7 +733,7 @@ def month_statements(months: int=1):
       bq_table_name     = BIGQUERY_TABLE_GENERAL,
       homepage_revenue        = gam_home_revenue + adsense_homepage_revenue,
       newpage_adsense_revenue = adsense_newpage_revenue,
-      social_gam_revenue      = gam_social_revenue + adsense_socialpage_revenue,
+      social_gam_revenue      = gam_social_revenue,
       collection_gam_revenue  = gam_profile_revenue, 
     )
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
