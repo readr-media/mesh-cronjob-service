@@ -855,7 +855,7 @@ def get_latest_active_publishers():
             rows = cur.fetchall()
             
             # 生成網址，每個網址一行
-            base_url = "https://www.mmesh.news/profile/publisher/"
+            base_url = f"{os.environ['MESH_WEB_URL']}/profile/publisher/"
             urls = [f"{base_url}{row[0]}" for row in rows]
             content = '\n'.join(urls)
             
@@ -903,7 +903,7 @@ def get_latest_active_members():
             rows = cur.fetchall()
             
             # 生成網址，每個網址一行
-            base_url = "https://www.mmesh.news/profile/member/"
+            base_url = f"{os.environ['MESH_WEB_URL']}/profile/member/"
             urls = [f"{base_url}{row[0]}" for row in rows]
             content = '\n'.join(urls)
             
