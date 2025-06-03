@@ -811,8 +811,13 @@ def get_latest_active_stories():
             story_ids = [str(row[0]) for row in rows]
             content = '\n'.join(story_ids)
             
+            # 確保 data 目錄存在
+            data_dir = 'data'
+            if not os.path.exists(data_dir):
+                os.makedirs(data_dir)
+            
             # 保存檔案
-            filename = os.path.join('data', 'latest_active_stories.txt')
+            filename = os.path.join(data_dir, 'latest_active_stories.txt')
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(content)
             
@@ -859,8 +864,13 @@ def get_latest_active_publishers():
             urls = [f"{base_url}{row[0]}" for row in rows]
             content = '\n'.join(urls)
             
+            # 確保 data 目錄存在
+            data_dir = 'data'
+            if not os.path.exists(data_dir):
+                os.makedirs(data_dir)
+            
             # 保存檔案
-            filename = os.path.join('data', 'latest_active_publishers.txt')
+            filename = os.path.join(data_dir, 'latest_active_publishers.txt')
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(content)
             
@@ -907,8 +917,13 @@ def get_latest_active_members():
             urls = [f"{base_url}{row[0]}" for row in rows]
             content = '\n'.join(urls)
             
+            # 確保 data 目錄存在
+            data_dir = 'data'
+            if not os.path.exists(data_dir):
+                os.makedirs(data_dir)
+            
             # 保存檔案
-            filename = os.path.join('data', 'latest_active_members.txt')
+            filename = os.path.join(data_dir, 'latest_active_members.txt')
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(content)
             
