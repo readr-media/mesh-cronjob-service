@@ -780,3 +780,146 @@ def semi_annual_statement():
     filename = statement.semiAnnualStatement(MESH_GQL_ENDPOINT)
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
+
+def get_latest_active_stories():
+    """
+    獲取最新的 50000 篇 active 文章 ID，並保存到檔案中
+    """
+    conn = psycopg2.connect(
+        database=os.environ['DB_NAME'],
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASS'],
+        host=os.environ['DB_HOST'],
+        port=os.environ['DB_PORT'],
+    )
+    conn.autocommit = True
+    
+    try:
+        with conn.cursor() as cur:
+            # 查詢最新的 50000 篇 active 文章
+            sql = '''
+                SELECT id 
+                FROM "Story" 
+                WHERE is_active = true 
+                ORDER BY "updatedAt" DESC 
+                LIMIT 50000;
+            '''
+            cur.execute(sql)
+            rows = cur.fetchall()
+            
+            # 將 ID 寫入檔案，每個 ID 一行
+            story_ids = [str(row[0]) for row in rows]
+            content = '\n'.join(story_ids)
+            
+            # 保存檔案
+            filename = os.path.join('data', 'latest_active_stories.txt')
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            # 上傳到 GCS
+            upload_blob(filename)
+            
+            print(f'成功保存並上傳 {len(story_ids)} 個文章 ID')
+            return True
+            
+    except Exception as error:
+        print(f"獲取最新 active 文章時發生錯誤：{error}")
+        return False
+    finally:
+        conn.close()
+
+def get_latest_active_publishers():
+    """
+    獲取最新的 500 個 active 發布者 customId，並生成對應的網址
+    """
+    conn = psycopg2.connect(
+        database=os.environ['DB_NAME'],
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASS'],
+        host=os.environ['DB_HOST'],
+        port=os.environ['DB_PORT'],
+    )
+    conn.autocommit = True
+    
+    try:
+        with conn.cursor() as cur:
+            # 查詢最新的 500 個 active 發布者
+            sql = '''
+                SELECT "customId" 
+                FROM "Publisher" 
+                WHERE is_active = true 
+                ORDER BY "updatedAt" DESC 
+                LIMIT 500;
+            '''
+            cur.execute(sql)
+            rows = cur.fetchall()
+            
+            # 生成網址，每個網址一行
+            base_url = "https://www.mmesh.news/profile/publisher/"
+            urls = [f"{base_url}{row[0]}" for row in rows]
+            content = '\n'.join(urls)
+            
+            # 保存檔案
+            filename = os.path.join('data', 'latest_active_publishers.txt')
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            # 上傳到 GCS
+            upload_blob(filename)
+            
+            print(f'成功保存並上傳 {len(urls)} 個發布者網址')
+            return True
+            
+    except Exception as error:
+        print(f"獲取最新 active 發布者時發生錯誤：{error}")
+        return False
+    finally:
+        conn.close()
+
+def get_latest_active_members():
+    """
+    獲取最新的 500 個 active 會員 customId，並生成對應的網址
+    """
+    conn = psycopg2.connect(
+        database=os.environ['DB_NAME'],
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASS'],
+        host=os.environ['DB_HOST'],
+        port=os.environ['DB_PORT'],
+    )
+    conn.autocommit = True
+    
+    try:
+        with conn.cursor() as cur:
+            # 查詢最新的 500 個 active 會員
+            sql = '''
+                SELECT "customId" 
+                FROM "Member" 
+                WHERE is_active = true 
+                ORDER BY "updatedAt" DESC 
+                LIMIT 500;
+            '''
+            cur.execute(sql)
+            rows = cur.fetchall()
+            
+            # 生成網址，每個網址一行
+            base_url = "https://www.mmesh.news/profile/member/"
+            urls = [f"{base_url}{row[0]}" for row in rows]
+            content = '\n'.join(urls)
+            
+            # 保存檔案
+            filename = os.path.join('data', 'latest_active_members.txt')
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            # 上傳到 GCS
+            upload_blob(filename)
+            
+            print(f'成功保存並上傳 {len(urls)} 個會員網址')
+            return True
+            
+    except Exception as error:
+        print(f"獲取最新 active 會員時發生錯誤：{error}")
+        return False
+    finally:
+        conn.close()
