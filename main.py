@@ -152,26 +152,35 @@ async def data_semi_annual_statements():
   return "ok"
 
 @app.get('/cronjob/generate_latest_active_data')
-async def generate_latest_active_data():
+async def generate_latest_active_data(
+    stories_limit: int = 50000,
+    publishers_limit: int = 500,
+    members_limit: int = 500
+):
     """
     產生三個檔案：
-    1. latest_active_stories.txt - 最新的 50000 篇 active 文章 ID
-    2. latest_active_publishers.txt - 最新的 500 個 active 發布者的網址
-    3. latest_active_members.txt - 最新的 500 個 active 會員的網址
+    1. latest_active_stories.txt - 最新的 active 文章 ID
+    2. latest_active_publishers.txt - 最新的 active 發布者的網址
+    3. latest_active_members.txt - 最新的 active 會員的網址
+    
+    Args:
+        stories_limit: 要獲取的文章數量，預設為 50000
+        publishers_limit: 要獲取的發布者數量，預設為 500
+        members_limit: 要獲取的會員數量，預設為 500
     """
     try:
         # 產生最新的 active 文章檔案
-        stories_result = cronjob.get_latest_active_stories()
+        stories_result = cronjob.get_latest_active_stories(limit=stories_limit)
         if not stories_result:
             return {"status": "error", "message": "產生最新 active 文章檔案失敗"}
 
         # 產生最新的 active 發布者檔案
-        publishers_result = cronjob.get_latest_active_publishers()
+        publishers_result = cronjob.get_latest_active_publishers(limit=publishers_limit)
         if not publishers_result:
             return {"status": "error", "message": "產生最新 active 發布者檔案失敗"}
 
         # 產生最新的 active 會員檔案
-        members_result = cronjob.get_latest_active_members()
+        members_result = cronjob.get_latest_active_members(limit=members_limit)
         if not members_result:
             return {"status": "error", "message": "產生最新 active 會員檔案失敗"}
 
@@ -182,7 +191,12 @@ async def generate_latest_active_data():
                 "latest_active_stories.txt",
                 "latest_active_publishers.txt",
                 "latest_active_members.txt"
-            ]
+            ],
+            "limits": {
+                "stories": stories_limit,
+                "publishers": publishers_limit,
+                "members": members_limit
+            }
         }
     except Exception as e:
         return {"status": "error", "message": f"發生錯誤：{str(e)}"}
