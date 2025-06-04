@@ -781,9 +781,11 @@ def semi_annual_statement():
     upload_blob(dest_filename=filename, bucket_name=PRIVATE_BUCKET)
     return True
 
-def get_latest_active_stories():
+def get_latest_active_stories(limit: int = 50000):
     """
-    獲取最新的 50000 篇 active 文章 ID，並保存到檔案中
+    獲取最新的 active 文章 ID，並保存到檔案中
+    Args:
+        limit: 要獲取的文章數量，預設為 50000
     """
     conn = psycopg2.connect(
         database=os.environ['DB_NAME'],
@@ -796,15 +798,15 @@ def get_latest_active_stories():
     
     try:
         with conn.cursor() as cur:
-            # 查詢最新的 50000 篇 active 文章
+            # 查詢最新的 active 文章
             sql = '''
                 SELECT id 
                 FROM "Story" 
                 WHERE is_active = true 
                 ORDER BY "updatedAt" DESC 
-                LIMIT 50000;
+                LIMIT %s;
             '''
-            cur.execute(sql)
+            cur.execute(sql, (limit,))
             rows = cur.fetchall()
             
             # 將 ID 寫入檔案，每個 ID 一行
@@ -833,9 +835,11 @@ def get_latest_active_stories():
     finally:
         conn.close()
 
-def get_latest_active_publishers():
+def get_latest_active_publishers(limit: int = 500):
     """
-    獲取最新的 500 個 active 發布者 customId，並生成對應的網址
+    獲取最新的 active 發布者 customId，並生成對應的網址
+    Args:
+        limit: 要獲取的發布者數量，預設為 500
     """
     conn = psycopg2.connect(
         database=os.environ['DB_NAME'],
@@ -848,15 +852,15 @@ def get_latest_active_publishers():
     
     try:
         with conn.cursor() as cur:
-            # 查詢最新的 500 個 active 發布者
+            # 查詢最新的 active 發布者
             sql = '''
                 SELECT "customId" 
                 FROM "Publisher" 
                 WHERE is_active = true 
                 ORDER BY "updatedAt" DESC 
-                LIMIT 500;
+                LIMIT %s;
             '''
-            cur.execute(sql)
+            cur.execute(sql, (limit,))
             rows = cur.fetchall()
             
             # 生成網址，每個網址一行
@@ -886,9 +890,11 @@ def get_latest_active_publishers():
     finally:
         conn.close()
 
-def get_latest_active_members():
+def get_latest_active_members(limit: int = 500):
     """
-    獲取最新的 500 個 active 會員 customId，並生成對應的網址
+    獲取最新的 active 會員 customId，並生成對應的網址
+    Args:
+        limit: 要獲取的會員數量，預設為 500
     """
     conn = psycopg2.connect(
         database=os.environ['DB_NAME'],
@@ -901,15 +907,15 @@ def get_latest_active_members():
     
     try:
         with conn.cursor() as cur:
-            # 查詢最新的 500 個 active 會員
+            # 查詢最新的 active 會員
             sql = '''
                 SELECT "customId" 
                 FROM "Member" 
                 WHERE is_active = true 
                 ORDER BY "updatedAt" DESC 
-                LIMIT 500;
+                LIMIT %s;
             '''
-            cur.execute(sql)
+            cur.execute(sql, (limit,))
             rows = cur.fetchall()
             
             # 生成網址，每個網址一行
