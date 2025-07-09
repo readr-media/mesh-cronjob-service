@@ -20,3 +20,4 @@ openpyxl==3.0.10
 python-dateutil==2.8.2
 google-ads-admanager==0.2.4
 meilisearch
+google-api-python-client==2.113.0
